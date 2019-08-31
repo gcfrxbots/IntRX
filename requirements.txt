@@ -1,3 +1,4 @@
-pandas
+
 xlsxwriter
 system_hotkey
+xlrd
