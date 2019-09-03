@@ -49,6 +49,26 @@ def formatSettingsXlsx():
     except PermissionError:
         print("Can't open the settings file. Please close it and make sure it's not set to Read Only")
 
+def formatInteractxlsx():
+    try:
+        with xlsxwriter.Workbook('Config/InteractConfig.xlsx') as workbook:  # FORMATTING
+            listGames = ("Skyrim", "Oblivion", "FO4", "FONV", "FO3", "Minecraft", "Subnautica")
+            for item in listGames:
+                worksheet = workbook.add_worksheet(item)
+                format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
+                lightformat = workbook.add_format({'center_across': True, 'font_color': 'black', 'bg_color': '#DCDCDC', 'border': True})
+                worksheet.set_column(0, 0, 30)
+                worksheet.set_column(1, 1, 30)
+                worksheet.set_column(2, 2, 130)
+                worksheet.write(0, 0, "Command", format)
+                worksheet.write(0, 1, "Cooldown (Sec)", format)
+                worksheet.write(0, 2, "Command To Execute", format)
+                worksheet.set_column('B:B', 20, lightformat)  # END FORMATTING
+
+
+        print("Config.xlsx has been updated successfully.")
+    except PermissionError:
+        print("Can't open the settings file. Please close it and make sure it's not set to Read Only")
 
 def initSetup():
     global settings
@@ -60,6 +80,10 @@ def initSetup():
     if not os.path.exists('Config/Settings.xlsx'):
         print("Creating Settings.xlsx")
         formatSettingsXlsx()
+
+    if not os.path.exists('Config/InteractConfig.xlsx'):
+        print("Creating InteractionConfig.xlsx")
+        formatInteractxlsx()
 
     # Read the settings file
     wb = xlrd.open_workbook('Config/Settings.xlsx')
@@ -94,7 +118,7 @@ def initSetup():
 
     print(">> Initial Checkup Complete! Connecting to Chat...")
 
-
+    return settings
 
 def openSocket():
     global settings
