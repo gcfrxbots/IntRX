@@ -1,4 +1,5 @@
 from Initialize import *
+from Interact import ImportSettings
 import datetime
 import re
 import time
@@ -72,28 +73,42 @@ def main():
 
 
 def refresh():
+    activeGame = ""
     while True:
-        time.sleep(5)
+        time.sleep(3)
         currentWindow = GetWindowText(GetForegroundWindow())
-        activeGame = ""
+        gameUpdated = False
         if currentWindow == "Skyrim Special Edition" and (activeGame != "Skyrim"):
             activeGame = "Skyrim"
+            gameUpdated = True
         if currentWindow == "Oblivion" and (activeGame != "Oblivion"):
             activeGame = "Oblivion"
+            gameUpdated = True
 
-        if currentWindow == "Fallout4" and (activeGame != "FO4"):
-            activeGame = "FO4"
-        if currentWindow == "Fallout: New Vegas" and (activeGame != "FONV"):
-            activeGame = "FONV"
-        if currentWindow == "Fallout3" and (activeGame != "FO3"):
-            activeGame = "FO3"
+        if currentWindow == "Fallout4" and (activeGame != "Fallout 4"):
+            activeGame = "Fallout 4"
+            gameUpdated = True
+        if currentWindow == "Fallout: New Vegas" and (activeGame != "Fallout NV"):
+            activeGame = "Fallout NV"
+            gameUpdated = True
+        if currentWindow == "Fallout3" and (activeGame != "Fallout 3"):
+            activeGame = "Fallout 3"
+            gameUpdated = True
 
         if currentWindow[:9] == "Minecraft" and (activeGame != "Minecraft"):
             activeGame = "Minecraft"
+            gameUpdated = True
         if currentWindow == "Subnautica" and (activeGame != "Subnautica"):
             activeGame = "Subnautica"
+            gameUpdated = True
 
-        print(activeGame)
+
+        if gameUpdated == True:
+            print("Now playing " + activeGame)
+            if settings['ANNOUNCE_GAME']:
+                sendMessage("The streamer is now playing " + activeGame + " and you can interact with it!")
+            ImportSettings(activeGame)
+
 t1 = Thread(target = main)
 t2 = Thread(target = refresh)
 

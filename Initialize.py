@@ -20,6 +20,8 @@ defaultSettings = [
     ("BOT_OAUTH", "", "To get this Oauth, head to https://twitchapps.com/tmi/ and log in with YOUR BOT'S ACCOUNT!"),
     ("BOT_NAME", "", "The twitch username of your bot (Lowercase)"),
     ("CHANNEL", "", "The twitch username of the channel you are connecting to (Lowercase)"),
+    ("", "", ""),
+    ("ANNOUNCE_GAME", "False", "Announce in chat when you begin playing a game that the bot supports. (TRUE / FALSE"),
 ]
 '''----------------------END SETTINGS----------------------'''
 
@@ -52,7 +54,7 @@ def formatSettingsXlsx():
 def formatInteractxlsx():
     try:
         with xlsxwriter.Workbook('Config/InteractConfig.xlsx') as workbook:  # FORMATTING
-            listGames = ("Skyrim", "Oblivion", "FO4", "FONV", "FO3", "Minecraft", "Subnautica")
+            listGames = ("Skyrim", "Oblivion", "Fallout 4", "Fallout NV", "Fallout 3", "Minecraft", "Subnautica")
             for item in listGames:
                 worksheet = workbook.add_worksheet(item)
                 format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
@@ -117,7 +119,6 @@ def initSetup():
         raise Exception("Missing BOT_NAME or CHANNEL - Please follow directions in the settings or readme")
 
     print(">> Initial Checkup Complete! Connecting to Chat...")
-
     return settings
 
 def openSocket():
@@ -133,7 +134,6 @@ def openSocket():
 
 def sendMessage(message):
     global settings
-    print(message)
     messageTemp = "PRIVMSG #" + settings["CHANNEL"] + " : " + message
     s.send((messageTemp + "\r\n").encode("utf-8"))
     print("Sent: " + messageTemp)
