@@ -14,7 +14,7 @@ Bot will not constantly refresh settings to save memory. Might add a setting for
 
 Need to add a setting for how quickly the game detector refreshes. Currently 3s default.
 
-
+------------
 9/2
 
 Settings is reading perfectly and updating successfully.
@@ -23,7 +23,7 @@ Bot now creates InteractConfig where all commands will take place
 
 Bot now detects your active window, and if your game is active it'll set activeGame to whatever that game is.
 
-
+------------
 8/31
 
 ReadSettings is 60% of the way there
