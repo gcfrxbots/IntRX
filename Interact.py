@@ -1,10 +1,10 @@
 
 try:
     import xlrd
+    import pyperclip
 except ImportError as e:
     print(e)
     raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
-
 
 
 def ImportSettings(activeGame):
@@ -20,4 +20,15 @@ def ImportSettings(activeGame):
             cooldown = sheet.cell_value(item,1)
             gamecmd = sheet.cell_value(item,2)
             interactCommands.append((chatcmd, cooldown, gamecmd))
-    print(interactCommands)
+    print("Loaded " + str(len(interactCommands)) + " commands for " + activeGame)
+    return interactCommands
+
+
+class InteractGame:
+    def __init__(self):
+        pass
+
+    def __call__(self, activeGame):
+        # Pass the command to a function, depending on the activeGame
+        pass
+

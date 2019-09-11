@@ -156,7 +156,7 @@ def joinRoom(s):
 
 def loadingComplete(line):
     if("End of /NAMES list" in line):
-        print(">> Bot Startup complete!")
+        print(">> IntRX Startup complete!")
         return False
     else:
         return True

@@ -31,16 +31,11 @@ def getint(cmdarguments):
     except: return None
 
 def runcommand(command, cmdarguments, user):
+    global currentCommands, activeGame
+    for item in currentCommands:
+        if command == item[0]:  # Command detected, pass this to the InteractGame class.
+            print(item[0] + " executed!")
 
-    wb = xlrd.open_workbook('Config/Settings.xlsx')
-    sheet = wb.sheet_by_name("Settings")
-    for item in range(sheet.nrows):
-        if item == 0:
-            pass
-        else:
-            option = sheet.cell_value(item,0)
-            setting = sheet.cell_value(item,1)
-            settings[option] = setting
 
 
 def main():
@@ -65,8 +60,7 @@ def main():
                     print(("(" + formatted_time() + ")>> " + user + ": " + message))
                     # Run the commands function
                     if command[0] == "!":
-                        print("Command")
-                        #runcommand(command, cmdarguments, user)
+                        runcommand(command, cmdarguments, user)
         except socket.error:
             print("Socket died")
 
@@ -74,6 +68,7 @@ def main():
 
 def refresh():
     activeGame = ""
+    global currentCommands, activeGame
     while True:
         time.sleep(3)
         currentWindow = GetWindowText(GetForegroundWindow())
@@ -102,12 +97,11 @@ def refresh():
             activeGame = "Subnautica"
             gameUpdated = True
 
-
-        if gameUpdated == True:
+        if gameUpdated == True:  # Do these things when the user starts playing a new game.
             print("Now playing " + activeGame)
             if settings['ANNOUNCE_GAME']:
                 sendMessage("The streamer is now playing " + activeGame + " and you can interact with it!")
-            ImportSettings(activeGame)
+            currentCommands = ImportSettings(activeGame)
 
 t1 = Thread(target = main)
 t2 = Thread(target = refresh)
