@@ -3,6 +3,15 @@ Dynamic Live In-Game Interaction for Twitch Chat
 
 DevLog:
 
+9/10
+
+Wow, has it really been this long since I made any update?
+
+Bot can now detect when a loaded command is run, depending on the current game.
+
+Created a class InteractGame which will eventually house all of the code for each specific game's input methods.
+
+------------
 9/3
 Bot now determines if you've changed supported games, and loads config accordingly.
 
