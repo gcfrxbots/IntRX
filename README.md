@@ -1,6 +1,8 @@
 # IntRX
 Dynamic Live In-Game Interaction for Twitch Chat
 
+Join our discord here, watch the RX DEV category. https://discord.gg/PZzMcH4
+
 DevLog:
 
 9/10
