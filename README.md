@@ -5,6 +5,24 @@ Join our discord here, watch the RX DEV category. https://discord.gg/PZzMcH4
 
 DevLog:
 
+9/14
+
+Interaction actually works! Well, it does for Minecraft and Subnautica. Try it out!
+
+Bot can now run commands per game, and evaluate which game's controller to send commands to.
+
+Added a AHK_PATH setting for the path to your AutoHotkey.exe. This is only needed if AHK isn't in your environmental variables path.
+
+Reformatted the settings xlsx a bit.
+
+Added an error catcher for when people try to run commands without the bot detecting an active game yet.
+
+Bot will now generate the Config files on first startup, then CLOSE so it doesn't throw any errors.
+
+Lot of good stuff with this update! Will hopefully get bethsoft games working soon!
+
+
+------------
 9/10
 
 Wow, has it really been this long since I made any update?
