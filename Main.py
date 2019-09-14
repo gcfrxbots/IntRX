@@ -1,5 +1,5 @@
 from Initialize import *
-from Interact import ImportSettings
+from Interact import ImportSettings, InteractGame
 import datetime
 import re
 import time
@@ -7,6 +7,8 @@ from threading import Thread
 from win32gui import GetWindowText, GetForegroundWindow
 
 settings = initSetup()
+interact = InteractGame(settings)
+currentCommands = False
 
 def getUser(line):
     seperate = line.split(":", 2)
@@ -30,10 +32,15 @@ def getint(cmdarguments):
         return out
     except: return None
 
+
 def runcommand(command, cmdarguments, user):
     global currentCommands, activeGame
+    if not currentCommands:
+        print("No game is currently loaded.")
+        return
     for item in currentCommands:
         if command == item[0]:  # Command detected, pass this to the InteractGame class.
+            interact(activeGame, item[2], item[1], cmdarguments, user)
             print(item[0] + " executed!")
 
 
@@ -43,32 +50,27 @@ def main():
     joinRoom(s)
     readbuffer = ""
     while True:
-        try:
-            readbuffer = readbuffer + s.recv(1024).decode("utf-8")
-            temp = readbuffer.split("\n")
-            readbuffer = temp.pop()
-            for line in temp:
-                if "PING" in line:
-                    s.send(bytes("PONG :tmi.twitch.tv\r\n".encode("utf-8")))
-                else:
-                    # All these things break apart the given chat message to make things easier to work with.
-                    user = getUser(line)
-                    message = str(getMessage(line))
-                    command = ((message.split(' ', 1)[0]).lower()).replace("\r", "")
-                    cmdarguments = message.replace(command or "\r" or "\n", "")
-                    getint(cmdarguments)
-                    print(("(" + formatted_time() + ")>> " + user + ": " + message))
-                    # Run the commands function
-                    if command[0] == "!":
-                        runcommand(command, cmdarguments, user)
-        except socket.error:
-            print("Socket died")
-
-
+        readbuffer = readbuffer + s.recv(1024).decode("utf-8")
+        temp = readbuffer.split("\n")
+        readbuffer = temp.pop()
+        for line in temp:
+            if "PING" in line:
+                s.send(bytes("PONG :tmi.twitch.tv\r\n".encode("utf-8")))
+            else:
+                # All these things break apart the given chat message to make things easier to work with.
+                user = getUser(line)
+                message = str(getMessage(line))
+                command = ((message.split(' ', 1)[0]).lower()).replace("\r", "")
+                cmdarguments = message.replace(command or "\r" or "\n", "")
+                getint(cmdarguments)
+                print(("(" + formatted_time() + ")>> " + user + ": " + message))
+                # Run the commands function
+                if command[0] == "!":
+                    runcommand(command, cmdarguments, user)
 
 def refresh():
-    activeGame = ""
     global currentCommands, activeGame
+    activeGame = ""
     while True:
         time.sleep(3)
         currentWindow = GetWindowText(GetForegroundWindow())

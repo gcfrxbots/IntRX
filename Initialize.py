@@ -22,6 +22,7 @@ defaultSettings = [
     ("CHANNEL", "", "The twitch username of the channel you are connecting to (Lowercase)"),
     ("", "", ""),
     ("ANNOUNCE_GAME", "False", "Announce in chat when you begin playing a game that the bot supports. (TRUE / FALSE"),
+    ("AHK_PATH", "C:/Program Files/AutoHotkey/AutoHotkey.exe", "The location of your AutoHotkey.exe"),
 ]
 '''----------------------END SETTINGS----------------------'''
 
@@ -32,13 +33,13 @@ def formatSettingsXlsx():
             format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
             boldformat = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'black'})
             lightformat = workbook.add_format({'center_across': True, 'font_color': 'black', 'bg_color': '#DCDCDC', 'border': True})
-            worksheet.set_column(0, 0, 20)
-            worksheet.set_column(1, 1, 20)
+            worksheet.set_column(0, 0, 25)
+            worksheet.set_column(1, 1, 50)
             worksheet.set_column(2, 2, 130)
             worksheet.write(0, 0, "Option", format)
             worksheet.write(0, 1, "Your Setting", boldformat)
             worksheet.write(0, 2, "Description", format)
-            worksheet.set_column('B:B', 20, lightformat)  # END FORMATTING
+            worksheet.set_column('B:B', 50, lightformat)  # END FORMATTING
 
             row = 1  # WRITE SETTINGS
             col = 0
@@ -47,7 +48,7 @@ def formatSettingsXlsx():
                 worksheet.write(row,  col + 1, default)
                 worksheet.write(row,  col + 2, description)
                 row += 1
-        print("Config.xlsx has been updated successfully.")
+        print("Settings.xlsx has been configured successfully.")
     except PermissionError:
         print("Can't open the settings file. Please close it and make sure it's not set to Read Only")
 
@@ -82,6 +83,8 @@ def initSetup():
     if not os.path.exists('Config/Settings.xlsx'):
         print("Creating Settings.xlsx")
         formatSettingsXlsx()
+        print("\nPlease open Config / Settings.xlsx and configure the bot, then run it again.")
+        quit()
 
     if not os.path.exists('Config/InteractConfig.xlsx'):
         print("Creating InteractionConfig.xlsx")
@@ -109,7 +112,7 @@ def initSetup():
         formatSettingsXlsx()
 
     # Check Settings
-    if settings["PORT"] not in ('80', '6667', '443', '6697'):
+    if str(int(settings["PORT"])) not in ('80', '6667', '443', '6697'):  # Convert into non-float string
         raise ConnectionError("Wrong Port! The port must be 80 or 6667 for standard connections, or 443 or 6697 for SSL")
     if not settings['BOT_OAUTH']:
         raise Exception("Missing BOT_OAUTH - Please follow directions in the settings or readme.")
