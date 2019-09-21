@@ -5,13 +5,18 @@ Join our discord here, watch the RX DEV category. https://discord.gg/PZzMcH4
 
 DevLog:
 
+Also 9/21
+
+Made a quick fix to make every bethesda game use the same function and script. Skyrim, FO4, and Oblivion work.
+FONV seems to work about half the time, so I'll make a new script for it a bit later to make sure it works consistently.
+I can't for the life of me get FO3 to start, but I assume it's the exact same as NV.
+
+
 9/21
 
 Interaction ACTUALLY works! Untested for Oblivion and FO3 because I dont feel like setting them up, but everything else is working great!
 
 Created a Resources folder that does NOT auto generate, as it has all the AHK files in it. Will keep AHK source files included.
-
-Changed names of a few things to not include spaces to make my life easier.
 
 Interaction uses AHK scripts now rather than the python AHK lib. MUCH faster and blockinput works.
 
