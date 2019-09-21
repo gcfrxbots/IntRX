@@ -32,7 +32,10 @@ class InteractGame:
 
     def __call__(self, activeGame, cmdToRun, cooldown, args, user):
         # Pass the command to a function, depending on the activeGame
-        eval("self.%s(cmdToRun)" % activeGame)
+        if activeGame in ['Skyrim', 'Fallout4', 'FalloutNV', 'Oblivion', 'Fallout3']:
+            self.Bethesda(cmdToRun)
+        else:
+            eval("self.%s(cmdToRun)" % activeGame)
 
     def Minecraft(self, cmdToRun):
         if cmdToRun[0] == "/":
@@ -44,24 +47,11 @@ class InteractGame:
         pyperclip.copy(cmdToRun)
         os.startfile('Resources\Subnautica.exe')
 
-    def Skyrim(self, cmdToRun):
-
+    def Bethesda(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:
             for item in cmdToRun:
                 if item == ' ':
                     f.write('Space\n')
                 else:
                     f.write(item + "\n")
-
-        os.startfile('Resources\Bethesda.exe')
-
-    def Fallout4(self, cmdToRun):
-
-        with open('Resources/cmd.txt', 'w') as f:
-            for item in cmdToRun:
-                if item == ' ':
-                    f.write('Space\n')
-                else:
-                    f.write(item + "\n")
-
         os.startfile('Resources\Bethesda.exe')
