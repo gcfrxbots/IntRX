@@ -5,6 +5,18 @@ Join our discord here, watch the RX DEV category. https://discord.gg/PZzMcH4
 
 DevLog:
 
+9/21
+
+Interaction ACTUALLY works! Untested for Oblivion and FO3 because I dont feel like setting them up, but everything else is working great!
+
+Created a Resources folder that does NOT auto generate, as it has all the AHK files in it. Will keep AHK source files included.
+
+Changed names of a few things to not include spaces to make my life easier.
+
+Interaction uses AHK scripts now rather than the python AHK lib. MUCH faster and blockinput works.
+
+Currently all interaction commands should be under 200ms per command executed, which is amazing imo.
+
 9/14
 
 Interaction actually works! Well, it does for Minecraft and Subnautica. Try it out!
