@@ -1,4 +1,5 @@
 import time
+import os
 try:
     import xlrd
     import pyperclip
@@ -36,15 +37,31 @@ class InteractGame:
     def Minecraft(self, cmdToRun):
         if cmdToRun[0] == "/":
             cmdToRun = cmdToRun[1:]
-        self.ahk.send_input('/')
         pyperclip.copy(cmdToRun)
-        self.ahk.send('^v')
-        time.sleep(0.02)
-        self.ahk.send('{Enter}')
+        os.startfile('Resources\Minecraft.exe')
 
     def Subnautica(self, cmdToRun):
-        self.ahk.send('{Enter}')
         pyperclip.copy(cmdToRun)
-        self.ahk.send('^v')
-        time.sleep(0.02)
-        self.ahk.send('{Enter}')
+        os.startfile('Resources\Subnautica.exe')
+
+    def Skyrim(self, cmdToRun):
+
+        with open('Resources/cmd.txt', 'w') as f:
+            for item in cmdToRun:
+                if item == ' ':
+                    f.write('Space\n')
+                else:
+                    f.write(item + "\n")
+
+        os.startfile('Resources\Bethesda.exe')
+
+    def Fallout4(self, cmdToRun):
+
+        with open('Resources/cmd.txt', 'w') as f:
+            for item in cmdToRun:
+                if item == ' ':
+                    f.write('Space\n')
+                else:
+                    f.write(item + "\n")
+
+        os.startfile('Resources\Bethesda.exe')

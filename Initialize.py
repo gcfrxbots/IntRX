@@ -26,6 +26,7 @@ defaultSettings = [
 ]
 '''----------------------END SETTINGS----------------------'''
 
+
 def formatSettingsXlsx():
     try:
         with xlsxwriter.Workbook('Config/Settings.xlsx') as workbook:  # FORMATTING
@@ -55,7 +56,7 @@ def formatSettingsXlsx():
 def formatInteractxlsx():
     try:
         with xlsxwriter.Workbook('Config/InteractConfig.xlsx') as workbook:  # FORMATTING
-            listGames = ("Skyrim", "Oblivion", "Fallout 4", "Fallout NV", "Fallout 3", "Minecraft", "Subnautica")
+            listGames = ("Skyrim", "Oblivion", "Fallout4", "FalloutNV", "Fallout3", "Minecraft", "Subnautica")
             for item in listGames:
                 worksheet = workbook.add_worksheet(item)
                 format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
@@ -72,6 +73,7 @@ def formatInteractxlsx():
         print("Config.xlsx has been updated successfully.")
     except PermissionError:
         print("Can't open the settings file. Please close it and make sure it's not set to Read Only")
+
 
 def initSetup():
     global settings

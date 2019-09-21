@@ -82,14 +82,14 @@ def refresh():
             activeGame = "Oblivion"
             gameUpdated = True
 
-        if currentWindow == "Fallout4" and (activeGame != "Fallout 4"):
-            activeGame = "Fallout 4"
+        if currentWindow == "Fallout4" and (activeGame != "Fallout4"):
+            activeGame = "Fallout4"
             gameUpdated = True
-        if currentWindow == "Fallout: New Vegas" and (activeGame != "Fallout NV"):
-            activeGame = "Fallout NV"
+        if currentWindow == "Fallout: New Vegas" and (activeGame != "FalloutNV"):
+            activeGame = "FalloutNV"
             gameUpdated = True
-        if currentWindow == "Fallout3" and (activeGame != "Fallout 3"):
-            activeGame = "Fallout 3"
+        if currentWindow == "Fallout3" and (activeGame != "Fallout3"):
+            activeGame = "Fallout3"
             gameUpdated = True
 
         if currentWindow[:9] == "Minecraft" and (activeGame != "Minecraft"):
