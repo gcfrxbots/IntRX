@@ -2,7 +2,6 @@ import os
 try:
     import xlrd
     import pyperclip
-    from ahk import AHK
 except ImportError as e:
     print(e)
     raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
@@ -26,9 +25,6 @@ def ImportSettings(activeGame):
 
 
 class InteractGame:
-    def __init__(self, settings):
-        self.ahk = AHK(executable_path=settings['AHK_PATH'])
-
     def __call__(self, activeGame, cmdToRun, cooldown, args, user):
         # Pass the command to a function, depending on the activeGame
         if activeGame in ['Skyrim', 'Fallout 4', 'Fallout NV', 'Oblivion', 'Fallout 3']:

@@ -22,7 +22,6 @@ defaultSettings = [
     ("CHANNEL", "", "The twitch username of the channel you are connecting to (Lowercase)"),
     ("", "", ""),
     ("ANNOUNCE_GAME", "False", "Announce in chat when you begin playing a game that the bot supports. (TRUE / FALSE"),
-    ("AHK_PATH", "C:/Program Files/AutoHotkey/AutoHotkey.exe", "The location of your AutoHotkey.exe"),
 ]
 '''----------------------END SETTINGS----------------------'''
 
