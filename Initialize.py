@@ -56,7 +56,7 @@ def formatSettingsXlsx():
 def formatInteractxlsx():
     try:
         with xlsxwriter.Workbook('Config/InteractConfig.xlsx') as workbook:  # FORMATTING
-            listGames = ("Skyrim", "Oblivion", "Fallout4", "FalloutNV", "Fallout3", "Minecraft", "Subnautica")
+            listGames = ("Skyrim", "Oblivion", "Fallout 4", "Fallout NV", "Fallout 3", "Minecraft", "Subnautica")
             for item in listGames:
                 worksheet = workbook.add_worksheet(item)
                 format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
@@ -126,6 +126,7 @@ def initSetup():
     print(">> Initial Checkup Complete! Connecting to Chat...")
     return settings
 
+
 def openSocket():
     global settings
     global s
@@ -158,14 +159,12 @@ def joinRoom(s):
             Loading = loadingComplete(line)
 
 
-
 def loadingComplete(line):
     if("End of /NAMES list" in line):
         print(">> IntRX Startup complete!")
         return False
     else:
         return True
-
 
 
 def getmoderators():

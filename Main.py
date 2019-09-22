@@ -34,13 +34,24 @@ def getint(cmdarguments):
 
 
 def runcommand(command, cmdarguments, user):
-    global currentCommands, activeGame
+    global currentCommands, activeGame, cooldowns
     if not currentCommands:
         print("No game is currently loaded.")
         return
+    if command in cooldowns.keys():
+        timeleft = cooldowns[command] - datetime.datetime.now()
+        timeleftSecs = round(timeleft.total_seconds())
+        if timeleftSecs == 0:
+            pass
+        else:
+            sendMessage("That command is still on cooldown for %s seconds." % timeleftSecs)
+            return
+
     for item in currentCommands:
         if command == item[0]:  # Command detected, pass this to the InteractGame class.
             interact(activeGame, item[2], item[1], cmdarguments, user)
+            tempCooldown = datetime.datetime.now() + datetime.timedelta(seconds=item[1])
+            cooldowns.update({command: tempCooldown})
             print(item[0] + " executed!")
 
 
@@ -78,37 +89,54 @@ def refresh():
         if currentWindow == "Skyrim Special Edition" and (activeGame != "Skyrim"):
             activeGame = "Skyrim"
             gameUpdated = True
+
         if currentWindow == "Oblivion" and (activeGame != "Oblivion"):
             activeGame = "Oblivion"
             gameUpdated = True
 
-        if currentWindow == "Fallout4" and (activeGame != "Fallout4"):
-            activeGame = "Fallout4"
+        if currentWindow == "Fallout4" and (activeGame != "Fallout 4"):
+            activeGame = "Fallout 4"
             gameUpdated = True
-        if currentWindow == "Fallout: New Vegas" and (activeGame != "FalloutNV"):
-            activeGame = "FalloutNV"
+
+        if currentWindow == "Fallout: New Vegas" and (activeGame != "Fallout NV"):
+            activeGame = "Fallout NV"
             gameUpdated = True
-        if currentWindow == "Fallout3" and (activeGame != "Fallout3"):
-            activeGame = "Fallout3"
+
+        if currentWindow == "Fallout3" and (activeGame != "Fallout 3"):
+            activeGame = "Fallout 3"
             gameUpdated = True
 
         if currentWindow[:9] == "Minecraft" and (activeGame != "Minecraft"):
             activeGame = "Minecraft"
             gameUpdated = True
+
         if currentWindow == "Subnautica" and (activeGame != "Subnautica"):
             activeGame = "Subnautica"
             gameUpdated = True
 
-        if gameUpdated == True:  # Do these things when the user starts playing a new game.
+        if gameUpdated:  # Do these things when the user starts playing a new game.
             print("Now playing " + activeGame)
             if settings['ANNOUNCE_GAME']:
                 sendMessage("The streamer is now playing " + activeGame + " and you can interact with it!")
             currentCommands = ImportSettings(activeGame)
 
+def tick():
+    global cooldowns
+    cooldowns = {}
+    while True:
+        time.sleep(0.5)
+        if cooldowns:
+            for item in cooldowns:
+                if cooldowns[item] <= datetime.datetime.now():
+                    cooldowns.pop(item)
+                    break
+
 t1 = Thread(target = main)
 t2 = Thread(target = refresh)
+t3 = Thread(target = tick)
 
 
 t1.start()
 t2.start()
+t3.start()
 

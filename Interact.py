@@ -1,4 +1,3 @@
-import time
 import os
 try:
     import xlrd
@@ -32,8 +31,10 @@ class InteractGame:
 
     def __call__(self, activeGame, cmdToRun, cooldown, args, user):
         # Pass the command to a function, depending on the activeGame
-        if activeGame in ['Skyrim', 'Fallout4', 'FalloutNV', 'Oblivion', 'Fallout3']:
+        if activeGame in ['Skyrim', 'Fallout 4', 'Fallout NV', 'Oblivion', 'Fallout 3']:
             self.Bethesda(cmdToRun)
+        elif activeGame in ['Fallout 3', 'Fallout NV']:
+            self.FO3(cmdToRun)
         else:
             eval("self.%s(cmdToRun)" % activeGame)
 
@@ -55,3 +56,12 @@ class InteractGame:
                 else:
                     f.write(item + "\n")
         os.startfile('Resources\Bethesda.exe')
+
+    def FO3(self, cmdToRun):
+        with open('Resources/cmd.txt', 'w') as f:
+            for item in cmdToRun:
+                if item == ' ':
+                    f.write('Space\n')
+                else:
+                    f.write(item + "\n")
+        os.startfile('Resources\FO3.exe')
