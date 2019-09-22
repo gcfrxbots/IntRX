@@ -5,10 +5,24 @@ Join our discord here, watch the RX DEV category. https://discord.gg/PZzMcH4
 
 DevLog:
 
+STILL 9/21 because last night's changes were at 3am:
+
+Cooldowns work! Individual cooldowns for every command, configurable from the spreadsheet.
+
+The AHK Library for python is no longer needed since AHK is all external.
+
+AHK Scripts will need to be run as admin.
+
+FO3/NV are now fully functional. Script works the same way but just needed a slightly longer delay.
+
+
+
 Also 9/21
 
 Made a quick fix to make every bethesda game use the same function and script. Skyrim, FO4, and Oblivion work.
+
 FONV seems to work about half the time, so I'll make a new script for it a bit later to make sure it works consistently.
+
 I can't for the life of me get FO3 to start, but I assume it's the exact same as NV.
 
 
