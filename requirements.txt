@@ -1,5 +1,0 @@
-
-xlsxwriter
-system_hotkey
-xlrd
-pyperclip
