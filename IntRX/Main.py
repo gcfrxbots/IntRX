@@ -1,5 +1,5 @@
 from Initialize import *
-from Interact import importInteraction, InteractGame
+from Interact import importInteraction, InteractGame, importGlobal
 import datetime
 import re
 import time
@@ -30,14 +30,14 @@ def getint(cmdarguments):
     try:
         out = int(re.search(r'\d+', cmdarguments).group())
         return out
-    except: return None
+    except:
+        return None
 
 
 def runcommand(command, cmdarguments, user):
-    global currentCommands, activeGame, cooldowns
+    global currentCommands, activeGame, cooldowns, globalCommands
     if not currentCommands:
-        print("No game is currently loaded.")
-        return
+        currentCommands = []
     if command in cooldowns.keys():
         timeleft = cooldowns[command] - datetime.datetime.now()
         timeleftSecs = round(timeleft.total_seconds())
@@ -47,16 +47,26 @@ def runcommand(command, cmdarguments, user):
             sendMessage("That command is still on cooldown for %s seconds." % timeleftSecs)
             return
 
-    for item in currentCommands:
+    for item in currentCommands:  # Test if the command run is for a loaded game
         if command == item[0]:  # Command detected, pass this to the InteractGame class.
             interact(activeGame, item[2], item[1], cmdarguments, user)
             tempCooldown = datetime.datetime.now() + datetime.timedelta(seconds=item[1])
             cooldowns.update({command: tempCooldown})
             print(item[0] + " executed!")
+            return
 
+    for item in globalCommands:  # Test if command run is a global command
+        if command == item[0]:  # Command detected, run the file
+            os.startfile(r"..\Config\UserScripts\\" + item[2])
+            tempCooldown = datetime.datetime.now() + datetime.timedelta(seconds=item[1])
+            cooldowns.update({command: tempCooldown})
+            print(item[0] + " executed!")
+            return
 
 
 def main():
+    global globalCommands
+    globalCommands = importGlobal()
     s = openSocket()
     joinRoom(s)
     readbuffer = ""
@@ -91,8 +101,6 @@ supportedGames = {
 }
 
 
-
-
 def refresh():
     global currentCommands, activeGame
     activeGame = ""
@@ -103,11 +111,9 @@ def refresh():
 
         activeGame = None
 
-
         for winName in supportedGames:
             if winName in currentWindow and (activeGame != supportedGames[winName]):
                 activeGame = supportedGames[winName]
-
 
         if cacheActiveGame != activeGame and activeGame:  # Do when user starts NEW game
             print("Now playing " + activeGame)

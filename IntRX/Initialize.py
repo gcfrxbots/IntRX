@@ -4,6 +4,7 @@ import socket
 import os
 import argparse
 import time
+import shutil
 try:
     import xlrd
     import xlsxwriter
@@ -71,11 +72,12 @@ def formatInteractxlsx():
     try:
         with xlsxwriter.Workbook('../Config/InteractConfig.xlsx') as workbook:  # FORMATTING
             listGames = ("Skyrim", "Oblivion", "Fallout 4", "Fallout NV", "Fallout 3", "Minecraft", "Subnautica")
+
+            format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
+            lightformat = workbook.add_format({'center_across': True, 'font_color': 'black', 'bg_color': '#DCDCDC', 'border': True})
+            redformat = workbook.add_format({'font_color': 'black', 'bg_color': '#ffdede', 'border': True})
             for item in listGames:
                 worksheet = workbook.add_worksheet(item)
-                format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
-                lightformat = workbook.add_format({'center_across': True, 'font_color': 'black', 'bg_color': '#DCDCDC', 'border': True})
-                redformat = workbook.add_format({'font_color': 'black', 'bg_color': '#ffdede', 'border': True})
                 worksheet.set_column(0, 0, 30)
                 worksheet.set_column(1, 1, 20)
                 worksheet.set_column(2, 2, 20)
@@ -86,7 +88,18 @@ def formatInteractxlsx():
                 worksheet.write(0, 3, "Command To Execute", format)
                 worksheet.set_column('B:B', 20, lightformat)  # END FORMATTING
                 worksheet.set_column('C:C', 20, redformat)  # END FORMATTING
-
+            # Create Global Worksheet
+            worksheet = workbook.add_worksheet("Global")
+            worksheet.set_column(0, 0, 30)
+            worksheet.set_column(1, 1, 20)
+            worksheet.set_column(2, 2, 20)
+            worksheet.set_column(3, 3, 130)
+            worksheet.write(0, 0, "Command", format)
+            worksheet.write(0, 1, "Cooldown (Sec)", format)
+            worksheet.write(0, 2, "Disable", format)
+            worksheet.write(0, 3, "File Name To Run", format)
+            worksheet.set_column('B:B', 20, lightformat)  # END FORMATTING
+            worksheet.set_column('C:C', 20, redformat)  # END FORMATTING
 
         print("Config.xlsx has been updated successfully.")
     except PermissionError:
@@ -99,6 +112,12 @@ def initSetup():
     killbot = False
     if not os.path.exists('../Config'):
         os.mkdir("../Config")
+
+    if not os.path.exists('../Config/UserScripts'):
+        os.mkdir("../Config/UserScripts")
+
+    if not os.path.exists("../Config/UserScripts/Example.ahk"):
+        shutil.copyfile("./Resources/Example.ahk", "../Config/UserScripts/Example.ahk")
 
     if not os.path.exists('../Config/Settings.xlsx'):
         formatSettingsXlsx()

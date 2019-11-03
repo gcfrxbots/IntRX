@@ -6,6 +6,34 @@ except ImportError as e:
     print(e)
     raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
 
+def importGlobal():
+    globalCommands = []
+    # Read the settings file
+    wb = xlrd.open_workbook('../Config/InteractConfig.xlsx')
+    sheet = wb.sheet_by_name("Global")
+    for item in range(sheet.nrows):
+        if item == 0:
+            pass
+        else:
+            chatcmd = sheet.cell_value(item,0)
+            cooldown = sheet.cell_value(item,1)
+            disable = sheet.cell_value(item, 2)
+            ahkpath = sheet.cell_value(item, 3)
+            if not disable.lower() in ['yes', 'true', 'disable']:
+                if not chatcmd[0] == "!":  # Append ! to the command if it isnt there
+                    chatcmd = "!" + chatcmd
+
+                if "." not in ahkpath[4:]:  # Append .exe onto the end if it isnt there
+                    ahkpath += ".exe"
+
+                if not os.path.exists("../Config/UserScripts/" + ahkpath):
+                    print("File %s does not exist, so the command %s was not added." % (ahkpath, chatcmd))
+                else:
+                    globalCommands.append((chatcmd, cooldown, ahkpath))
+    print("Loaded " + str(len(globalCommands)) + " global commands.")
+    return globalCommands
+
+
 
 def importInteraction(activeGame):
     interactCommands = []
