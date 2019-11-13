@@ -18,8 +18,10 @@ def importGlobal():
             chatcmd = sheet.cell_value(item,0)
             cooldown = sheet.cell_value(item,1)
             disable = sheet.cell_value(item, 2)
-            ahkpath = sheet.cell_value(item, 3)
-            if not disable.lower() in ['yes', 'true', 'disable']:
+            activewindow = sheet.cell_value(item, 3)
+            ahkpath = sheet.cell_value(item, 4)
+
+            if not disable.lower() in ['yes', 'true', 'disable', 'off']:
                 if not chatcmd[0] == "!":  # Append ! to the command if it isnt there
                     chatcmd = "!" + chatcmd
 
@@ -29,7 +31,7 @@ def importGlobal():
                 if not os.path.exists("../Config/UserScripts/" + ahkpath):
                     print("File %s does not exist, so the command %s was not added." % (ahkpath, chatcmd))
                 else:
-                    globalCommands.append((chatcmd, cooldown, ahkpath))
+                    globalCommands.append((chatcmd, cooldown, ahkpath, activewindow))
     print("Loaded " + str(len(globalCommands)) + " global commands.")
     return globalCommands
 

@@ -5,6 +5,7 @@ import os
 import argparse
 import time
 import shutil
+from distutils.dir_util import copy_tree
 try:
     import xlrd
     import xlsxwriter
@@ -30,6 +31,7 @@ defaultSettings = [
     ("", "", ""),
     ("ANNOUNCE GAME", "Yes", "Announce in chat when you begin playing a game that the bot supports. (Yes/No)"),
     ("REFRESH INTERVAL", 5, "The period of time, in seconds, that the bot refreshes your active window to load or unload commands for a game."),
+    ("CD BETWEEN CMDS", 15, "The cooldown, in seconds, between two consecutive commands."),
 ]
 '''----------------------END SETTINGS----------------------'''
 
@@ -75,31 +77,37 @@ def formatInteractxlsx():
 
             format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
             lightformat = workbook.add_format({'center_across': True, 'font_color': 'black', 'bg_color': '#DCDCDC', 'border': True})
+            evenlighterformat =  workbook.add_format({'center_across': True, 'font_color': 'black', 'bg_color': '#f0f0f0', 'border': True})
             redformat = workbook.add_format({'font_color': 'black', 'bg_color': '#ffdede', 'border': True})
-            for item in listGames:
+
+            worksheet = workbook.add_worksheet("Global")  # FORMAT GLOBAL
+            worksheet.set_column(0, 0, 30)
+            worksheet.set_column(1, 1, 10)
+            worksheet.set_column(2, 2, 15)
+            worksheet.set_column(3, 3, 45)
+            worksheet.set_column(4, 4, 70)
+            worksheet.write(0, 0, "Command", format)
+            worksheet.write(0, 1, "Cooldown", format)
+            worksheet.write(0, 2, "Disable", format)
+            worksheet.write(0, 3, "Active Window", format)
+            worksheet.write(0, 4, "File Name To Run", format)
+            worksheet.set_column('B:B', 10, lightformat)
+            worksheet.set_column('C:C', 15, redformat)
+            worksheet.set_column('D:D', 45, evenlighterformat)
+
+            for item in listGames:  # FORMAT GAMES
                 worksheet = workbook.add_worksheet(item)
                 worksheet.set_column(0, 0, 30)
-                worksheet.set_column(1, 1, 20)
+                worksheet.set_column(1, 1, 10)
                 worksheet.set_column(2, 2, 20)
                 worksheet.set_column(3, 3, 130)
                 worksheet.write(0, 0, "Command", format)
-                worksheet.write(0, 1, "Cooldown (Sec)", format)
+                worksheet.write(0, 1, "Cooldown", format)
                 worksheet.write(0, 2, "Disable", format)
                 worksheet.write(0, 3, "Command To Execute", format)
-                worksheet.set_column('B:B', 20, lightformat)  # END FORMATTING
+                worksheet.set_column('B:B', 10, lightformat)  # END FORMATTING
                 worksheet.set_column('C:C', 20, redformat)  # END FORMATTING
             # Create Global Worksheet
-            worksheet = workbook.add_worksheet("Global")
-            worksheet.set_column(0, 0, 30)
-            worksheet.set_column(1, 1, 20)
-            worksheet.set_column(2, 2, 20)
-            worksheet.set_column(3, 3, 130)
-            worksheet.write(0, 0, "Command", format)
-            worksheet.write(0, 1, "Cooldown (Sec)", format)
-            worksheet.write(0, 2, "Disable", format)
-            worksheet.write(0, 3, "File Name To Run", format)
-            worksheet.set_column('B:B', 20, lightformat)  # END FORMATTING
-            worksheet.set_column('C:C', 20, redformat)  # END FORMATTING
 
         print("Config.xlsx has been updated successfully.")
     except PermissionError:
@@ -116,8 +124,8 @@ def initSetup():
     if not os.path.exists('../Config/UserScripts'):
         os.mkdir("../Config/UserScripts")
 
-    if not os.path.exists("../Config/UserScripts/Example.ahk"):
-        shutil.copyfile("./Resources/Example.ahk", "../Config/UserScripts/Example.ahk")
+    if not os.path.exists("../Config/UserScripts/Templates"):
+        copy_tree("./Resources/Templates", "../Config/UserScripts/Templates")
 
     if not os.path.exists('../Config/Settings.xlsx'):
         formatSettingsXlsx()
