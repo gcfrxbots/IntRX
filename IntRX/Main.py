@@ -34,6 +34,7 @@ def getint(cmdarguments):
         return None
 
 def writeArgs(args):
+    args = args.replace('\r', '')
     with open("../Config/UserScripts/output.txt", "w") as f:
         f.write(args)
 
