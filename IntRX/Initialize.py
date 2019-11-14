@@ -4,7 +4,6 @@ import socket
 import os
 import argparse
 import time
-import shutil
 from distutils.dir_util import copy_tree
 try:
     import xlrd
@@ -38,7 +37,7 @@ defaultSettings = [
 def stopBot(err):
     print(">>>>>---------------------------------------------------------------------------<<<<<")
     print(err)
-    print("A full explanation can be found in the readme.")
+    print("More info can be found here: https://rxbots.net/intrx-setup.html")
     print(">>>>>----------------------------------------------------------------------------<<<<<")
     time.sleep(3)
     quit()
@@ -83,7 +82,7 @@ def formatInteractxlsx():
             worksheet = workbook.add_worksheet("Global")  # FORMAT GLOBAL
             worksheet.set_column(0, 0, 30)
             worksheet.set_column(1, 1, 10)
-            worksheet.set_column(2, 2, 15)
+            worksheet.set_column(2, 2, 10)
             worksheet.set_column(3, 3, 45)
             worksheet.set_column(4, 4, 70)
             worksheet.write(0, 0, "Command", format)
@@ -92,21 +91,21 @@ def formatInteractxlsx():
             worksheet.write(0, 3, "Active Window", format)
             worksheet.write(0, 4, "File Name To Run", format)
             worksheet.set_column('B:B', 10, lightformat)
-            worksheet.set_column('C:C', 15, redformat)
+            worksheet.set_column('C:C', 10, redformat)
             worksheet.set_column('D:D', 45, evenlighterformat)
 
             for item in listGames:  # FORMAT GAMES
                 worksheet = workbook.add_worksheet(item)
                 worksheet.set_column(0, 0, 30)
                 worksheet.set_column(1, 1, 10)
-                worksheet.set_column(2, 2, 20)
+                worksheet.set_column(2, 2, 10)
                 worksheet.set_column(3, 3, 130)
                 worksheet.write(0, 0, "Command", format)
                 worksheet.write(0, 1, "Cooldown", format)
                 worksheet.write(0, 2, "Disable", format)
                 worksheet.write(0, 3, "Command To Execute", format)
                 worksheet.set_column('B:B', 10, lightformat)  # END FORMATTING
-                worksheet.set_column('C:C', 20, redformat)  # END FORMATTING
+                worksheet.set_column('C:C', 10, redformat)  # END FORMATTING
             # Create Global Worksheet
 
         print("Config.xlsx has been updated successfully.")
