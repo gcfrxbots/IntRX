@@ -1,9 +1,10 @@
-# IntRX
-Dynamic Live In-Game Interaction for Twitch Chat
-
-Join our discord here, watch the RX DEV category. https://discord.gg/PZzMcH4
 
 DevLog:
+
+11/14 lmao:
+
+I've been doing a great job at keeping up with this changelog, clearly.
+From here on out, changelogs will be handled like rxbot's. 
 
 STILL 9/21 because last night's changes were at 3am:
 
