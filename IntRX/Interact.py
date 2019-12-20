@@ -21,6 +21,9 @@ def importGlobal():
             activewindow = sheet.cell_value(item, 3)
             ahkpath = sheet.cell_value(item, 4)
 
+            if not cooldown:
+                cooldown = 0.0
+
             if not disable.lower() in ['yes', 'true', 'disable', 'off']:
                 if not chatcmd[0] == "!":  # Append ! to the command if it isnt there
                     chatcmd = "!" + chatcmd
@@ -50,6 +53,9 @@ def importInteraction(activeGame):
             cooldown = sheet.cell_value(item,1)
             disable = sheet.cell_value(item, 2)
             gamecmd = sheet.cell_value(item,3)
+
+            if not cooldown:
+                cooldown = 0.0
 
             if not disable.lower() in ['yes', 'true', 'disable']:
                 if not chatcmd[0] == "!":

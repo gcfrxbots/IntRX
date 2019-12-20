@@ -70,9 +70,7 @@ def runcommand(command, cmdarguments, user):
         if command in cooldowns.keys():
             timeleft = cooldowns[command] - datetime.datetime.now()
             timeleftSecs = round(timeleft.total_seconds())
-            if timeleftSecs == 0:
-                pass
-            else:
+            if timeleftSecs > 1 and (str(timeleft) != "-1"):
                 sendMessage("That command is still on cooldown for %s seconds." % timeleftSecs)
                 return
 
