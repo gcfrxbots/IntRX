@@ -12,11 +12,9 @@ Blockinput, On
 ; Do NOT touch anything above this line unless you know what you're doing. This stuff is to stop any keys you're pressing from interfering with the script, and to ensure it works with your game.
 
 
-;  |
-;  |  This is all you need to change to just send one single keystroke! Simply change 's' to any key you want to press.
-;  V  For non-digits, just type their name, ie Enter, Space, Up, End, etc.
-
-Input = s
+; The line below is all you need to change to just send one single keystroke! Simply change 'S' to any key you want to press.
+; For special keys, such as Tab, Space, etc. refer to the key list here: https://www.autohotkey.com/docs/KeyList.htm
+Input = S
 
 
 SendInput, {%Input% down}
