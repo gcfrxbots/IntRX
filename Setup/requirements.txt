@@ -1,4 +1,7 @@
 xlsxwriter
-system_hotkey
+
 xlrd
+
 pyperclip
+
+pywin32

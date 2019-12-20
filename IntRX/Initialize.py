@@ -8,7 +8,6 @@ from distutils.dir_util import copy_tree
 try:
     import xlrd
     import xlsxwriter
-    from system_hotkey import SystemHotkey, SystemRegisterError
 except ImportError as e:
     print(e)
     raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
