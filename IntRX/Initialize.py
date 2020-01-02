@@ -1,5 +1,3 @@
-import urllib, urllib.request
-import json
 import socket
 import os
 import argparse
@@ -30,8 +28,12 @@ defaultSettings = [
     ("ANNOUNCE GAME", "Yes", "Announce in chat when you begin playing a game that the bot supports. (Yes/No)"),
     ("REFRESH INTERVAL", 5, "The period of time, in seconds, that the bot refreshes your active window to load or unload commands for a game."),
     ("CD BETWEEN CMDS", 15, "The cooldown, in seconds, between two consecutive commands."),
+    ("", "", ""),
+    ("ALT BOT NAME", "", "If you're using another bot for command processing (nightbot, StreamElements, etc) that uses its own Twitch account rather than your bot's, type its name here. "),
+    ("COMMAND PHRASE", "", "!!! If this isn't empty, then this is the message that the bot will watch for to run commands, and WILL NOT WORK WITH NORMAL COMMANDS. Must contain %cmd%. Check readme for more info."),
 ]
 '''----------------------END SETTINGS----------------------'''
+
 
 def stopBot(err):
     print(">>>>>---------------------------------------------------------------------------<<<<<")
@@ -40,6 +42,7 @@ def stopBot(err):
     print(">>>>>----------------------------------------------------------------------------<<<<<")
     time.sleep(3)
     quit()
+
 
 def formatSettingsXlsx():
     try:
@@ -166,6 +169,16 @@ def initSetup():
         stopBot("Invalid BOT OAUTH - Your oauth should start with 'oauth:'")
     if not settings['BOT NAME'] or not settings['CHANNEL']:
         stopBot("Missing BOT NAME or CHANNEL - Please follow directions in the settings or readme")
+    if settings["COMMAND PHRASE"]:
+        if not "%cmd%" in settings["COMMAND PHRASE"]:
+            stopBot("Your COMMAND PHRASE does not have %cmd% in it anywhere.")
+        if len(settings["COMMAND PHRASE"].split("%cmd%", 1)[0]) < 3:
+            stopBot("Your setting for COMMAND PHRASE is too short. You need at least 4 characters before %cmd%. ")
+        print("\n\n IMPORTANT! You have a COMMAND PHRASE set in your Settings. NORMAL COMMANDS WON'T WORK!"
+              "\n The bot will ONLY run commands via phrases sent only by the specified bot accounts. "
+              "\n If you don't know what this means, remove your COMMAND PHRASE setting and read the documentation.\n")
+        time.sleep(2)
+
 
     print(">> Initial Checkup Complete! Connecting to Chat...")
     return settings
@@ -209,14 +222,6 @@ def loadingComplete(line):
         return False
     else:
         return True
-
-
-def getmoderators():
-    global settings
-    json_url = urllib.request.urlopen('http://tmi.twitch.tv/group/user/' + settings("CHANNEL").lower() + '/chatters')
-
-    data = json.loads(json_url.read())
-    mods = data['chatters']['moderators']
 
 
 if GenSettings:

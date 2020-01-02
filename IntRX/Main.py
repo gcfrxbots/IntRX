@@ -10,6 +10,45 @@ settings = initSetup()
 interact = InteractGame()
 currentCommands = False
 
+
+class antiCommand:  # Anticommands, my name for grabbing the command from a chat message rather than a command.
+    def __init__(self):
+        self.fromLeft = 0
+        self.fromRight = 0
+        self.leftStr = ""
+        self.rightStr = ""
+
+    def trimSetting(self):
+        if settings["COMMAND PHRASE"]:
+            phrase = settings["COMMAND PHRASE"].lower()
+            self.fromLeft = 0
+            self.fromRight = 0
+            self.leftStr = phrase.split("%cmd%", 1)[0]
+            self.rightStr = phrase.split("%cmd%", 1)[1]
+            if len(self.leftStr) < 3:
+                stopBot("Your setting for COMMAND PHRASE is too short. You need at least 4 characters before %cmd%. ")
+            self.fromLeft = len(self.leftStr)
+            self.fromRight = len(self.rightStr)
+            return self.leftStr  # Left side of the message includes the
+
+    def extractCmd(self, cmd):
+        cmd = (cmd.replace("\r", '').strip()).lower()
+        toreturn = ""
+        cmd = (self.leftStr + cmd.split(self.leftStr, 1)[1])
+
+        if self.fromLeft and self.fromRight:
+            toreturn = cmd[self.fromLeft:-self.fromRight]
+        elif self.fromLeft:
+            toreturn = cmd[self.fromLeft:]
+        elif self.fromRight:
+            toreturn = cmd[:-self.fromRight]
+
+        print(toreturn)
+        return toreturn.replace("!", '')
+
+
+antiCmd = antiCommand()
+
 def getUser(line):
     seperate = line.split(":", 2)
     user = seperate[1].split("!", 1)[0]
@@ -33,10 +72,12 @@ def getint(cmdarguments):
     except:
         return None
 
+
 def writeArgs(args):
     args = args.replace('\r', '')
     with open("../Config/UserScripts/output.txt", "w") as f:
         f.write(args)
+
 
 def runCmdExtras(command, cmdarguments, item):
     tempCooldown = datetime.datetime.now() + datetime.timedelta(seconds=item[1])
@@ -54,10 +95,11 @@ def runcommand(command, cmdarguments, user):
     run = False
     for item in currentCommands, globalCommands:
         for i in item:
-            if command == i[0]:
+            if command.lower() == i[0].lower():
                 run = True
 
     if run:
+        # Manage cooldowns
         if "00rx_globalCD" in cooldowns.keys():  # This is just weird so theres no way anyone will ever accidentally have their command say this. Note, if your command says this and you ask for help, ill be pissed.
             timeleft = cooldowns["00rx_globalCD"] - datetime.datetime.now()
             timeleftSecs = round(timeleft.total_seconds())
@@ -75,13 +117,13 @@ def runcommand(command, cmdarguments, user):
                 return
 
         for item in currentCommands:  # Test if the command run is for a loaded game
-            if command == item[0]:  # Command detected, pass this to the InteractGame class.
+            if command.lower() == item[0].lower():  # Command detected, pass this to the InteractGame class.
                 interact(activeGame, item[2], item[1], cmdarguments, user)
                 runCmdExtras(command, cmdarguments, item)
                 return
 
         for item in globalCommands:  # Test if command run is a global command
-            if command == item[0]:  # Command detected, run the file
+            if command.lower() == item[0].lower():  # Command detected, run the file
 
                 if item[3]:  # Do this stuff if there's a specified active window
                     if item[3] in GetWindowText(GetForegroundWindow()):
@@ -93,7 +135,6 @@ def runcommand(command, cmdarguments, user):
                     os.startfile(r"..\Config\UserScripts\\" + item[2])
                     runCmdExtras(command, cmdarguments, item)
                     return
-
 
 
 def main():
@@ -118,8 +159,19 @@ def main():
                 getint(cmdarguments)
                 print(("(" + formatted_time() + ")>> " + user + ": " + message))
                 # Run the commands function
-                if command[0] == "!":
+
+                if settings["COMMAND PHRASE"]:  # Process anticommands
+                    if user in [settings["BOT NAME"], settings["ALT BOT NAME"]]:
+                        if antiCmd.trimSetting() in message.lower():
+                            extractedCmd = antiCmd.extractCmd(message)
+                            cmdarguments = (extractedCmd.replace(extractedCmd.split(" ")[0], '')).strip()
+                            toRun = extractedCmd.split(" ")[0]
+                            print("Running command from another bot: " + toRun)
+                            runcommand("!" + toRun, cmdarguments, user)
+
+                elif command[0] == "!":  # Only run normal commands if COMMAND PHRASE is blank
                     runcommand(command, cmdarguments, user)
+
 
 supportedGames = {
     # Window Name : Function Name
@@ -171,6 +223,7 @@ def tick():
                 if cooldowns[item] <= datetime.datetime.now():
                     cooldowns.pop(item)
                     break
+
 
 t1 = Thread(target = main)
 t2 = Thread(target = refresh)
