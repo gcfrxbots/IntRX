@@ -29,8 +29,8 @@ defaultSettings = [
     ("REFRESH INTERVAL", 5, "The period of time, in seconds, that the bot refreshes your active window to load or unload commands for a game."),
     ("CD BETWEEN CMDS", 15, "The cooldown, in seconds, between two consecutive commands."),
     ("", "", ""),
-    ("ALT BOT NAME", "", "If you're using another bot for command processing (nightbot, StreamElements, etc) that uses its own Twitch account rather than your bot's, type its name here. "),
-    ("COMMAND PHRASE", "", "!!! If this isn't empty, then this is the message that the bot will watch for to run commands, and WILL NOT WORK WITH NORMAL COMMANDS. Must contain %cmd%. Check readme for more info."),
+    ("ALT BOT NAME", "", "If you use another bot which uses its own Twitch account, such as NightBot or StreamElements, type its name here."),
+    ("COMMAND PHRASE", "", "If this isn't empty, commands will only be accepted from your bot(s), and must be executed via this phrase. Use %cmd% to mark where the command goes. Check the site for more info."),
 ]
 '''----------------------END SETTINGS----------------------'''
 
