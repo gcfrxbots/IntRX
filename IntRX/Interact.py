@@ -49,10 +49,10 @@ def importInteraction(activeGame):
         if item == 0:
             pass
         else:
-            chatcmd = sheet.cell_value(item,0)
-            cooldown = sheet.cell_value(item,1)
+            chatcmd = sheet.cell_value(item, 0)
+            cooldown = sheet.cell_value(item, 1)
             disable = sheet.cell_value(item, 2)
-            gamecmd = sheet.cell_value(item,3)
+            gamecmd = sheet.cell_value(item, 3)
 
             if not cooldown:
                 cooldown = 0.0
@@ -72,6 +72,8 @@ class InteractGame:
             self.Bethesda(cmdToRun)
         elif activeGame in ['Fallout 3', 'Fallout NV']:
             self.FO3(cmdToRun)
+        elif activeGame == "Witcher 3":
+            self.Witcher3(cmdToRun)
         else:
             eval("self.%s(cmdToRun)" % activeGame)
 
@@ -102,3 +104,12 @@ class InteractGame:
                 else:
                     f.write(item + "\n")
         os.startfile('Resources\FO3.exe')
+
+    def Witcher3(self, cmdToRun):
+        with open('Resources/cmd.txt', 'w') as f:
+            for item in cmdToRun:
+                if item == ' ':
+                    f.write('Space\n')
+                else:
+                    f.write(item + "\n")
+        os.startfile('Resources\Witcher3.exe')
