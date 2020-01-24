@@ -1,3 +1,4 @@
 xlsxwriter
 xlrd
 pyperclip
+pywin32
