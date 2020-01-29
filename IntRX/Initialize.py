@@ -2,6 +2,7 @@ import socket
 import os
 import argparse
 import time
+import shutil
 from distutils.dir_util import copy_tree
 try:
     import xlrd
@@ -124,6 +125,13 @@ def initSetup():
 
     if not os.path.exists('../Config/UserScripts'):
         os.mkdir("../Config/UserScripts")
+
+        for file in os.listdir("./Resources/Included Scripts"):
+            full_file_name = os.path.join("./Resources/Included Scripts", file)
+            if os.path.isfile(full_file_name) and (".ahk" not in full_file_name):
+                shutil.copy(full_file_name, "../Config/UserScripts")
+
+
 
     if not os.path.exists("../Config/UserScripts/Templates"):
         copy_tree("./Resources/Templates", "../Config/UserScripts/Templates")

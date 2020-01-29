@@ -1,5 +1,5 @@
 from Initialize import *
-from Interact import importInteraction, InteractGame, importGlobal
+from Interact import importInteraction, InteractGame, importGlobal, script
 import datetime
 import re
 import time
@@ -118,8 +118,8 @@ def runcommand(command, cmdarguments, user):
 
         for item in currentCommands:  # Test if the command run is for a loaded game
             if command.lower() == item[0].lower():  # Command detected, pass this to the InteractGame class.
-                interact(activeGame, item[2], item[1], cmdarguments, user)
                 runCmdExtras(command, cmdarguments, item)
+                interact(activeGame, item[2], item[1], cmdarguments, user)
                 return
 
         for item in globalCommands:  # Test if command run is a global command
@@ -127,13 +127,13 @@ def runcommand(command, cmdarguments, user):
 
                 if item[3]:  # Do this stuff if there's a specified active window
                     if item[3] in GetWindowText(GetForegroundWindow()):
-                        os.startfile(r"..\Config\UserScripts\\" + item[2])
                         runCmdExtras(command, cmdarguments, item)
+                        script.runAHK(r"..\Config\UserScripts\\" + item[2])
                         return
 
                 else:  # Otherwise just active the command
-                    os.startfile(r"..\Config\UserScripts\\" + item[2])
                     runCmdExtras(command, cmdarguments, item)
+                    script.runAHK(r"..\Config\UserScripts\\" + item[2])
                     return
 
 

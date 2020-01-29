@@ -32,12 +32,14 @@ def importGlobal():
                     ahkpath += ".exe"
 
                 if not os.path.exists("../Config/UserScripts/" + ahkpath):
+                    ahkpath = ahkpath[:-4] + ".ahk"
+
+                if not os.path.exists("../Config/UserScripts/" + ahkpath):
                     print("File %s does not exist, so the command %s was not added." % (ahkpath, chatcmd))
                 else:
                     globalCommands.append((chatcmd, cooldown, ahkpath, activewindow))
     print("Loaded " + str(len(globalCommands)) + " global commands.")
     return globalCommands
-
 
 
 def importInteraction(activeGame):
@@ -81,11 +83,11 @@ class InteractGame:
         if cmdToRun[0] == "/":
             cmdToRun = cmdToRun[1:]
         pyperclip.copy(cmdToRun)
-        os.startfile('Resources\Minecraft.exe')
+        script.runAHK('Resources\Minecraft.exe')
 
     def Subnautica(self, cmdToRun):
         pyperclip.copy(cmdToRun)
-        os.startfile('Resources\Subnautica.exe')
+        script.runAHK('Resources\Subnautica.exe')
 
     def Bethesda(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:
@@ -94,7 +96,7 @@ class InteractGame:
                     f.write('Space\n')
                 else:
                     f.write(item + "\n")
-        os.startfile('Resources\Bethesda.exe')
+        script.runAHK('Resources\Bethesda.exe')
 
     def FO3(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:
@@ -103,7 +105,7 @@ class InteractGame:
                     f.write('Space\n')
                 else:
                     f.write(item + "\n")
-        os.startfile('Resources\FO3.exe')
+        script.runAHK('Resources\FO3.exe')
 
     def Witcher3(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:
@@ -112,4 +114,25 @@ class InteractGame:
                     f.write('Space\n')
                 else:
                     f.write(item + "\n")
-        os.startfile('Resources\Witcher3.exe')
+        script.runAHK('Resources\Witcher3.exe')
+
+
+class scriptTasking:
+    def __init__(self):
+        self.isScriptRunning = False
+        self.scriptQueue = []
+
+    def runAHK(self, path):
+        if self.isScriptRunning:  # Queue the next thing to be run
+            self.scriptQueue.append(path)
+            return
+
+        self.isScriptRunning = True
+        os.system(path)
+        self.isScriptRunning = False
+
+        if self.scriptQueue:
+            self.runAHK(self.scriptQueue[0])
+
+
+script = scriptTasking()
