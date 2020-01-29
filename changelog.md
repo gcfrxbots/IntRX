@@ -1,14 +1,16 @@
-VERSION 0.6
+VERSION 0.8
 
-Primary Change: Custom Inputs
+Primary Change: Command Queueing
 Changes:
-Added a bunch of templates which are now copied into Config/Userscripts/Templates
-Shrunk the size of some columns to make them prettier
+Remembered to update changelog
 
 
 FUNCTIONALITY:
-Added the ability to pass arguments to AHK scripts. Any args after a command (like !command args) will fill a text file with the args.
+Bot now queues commands that are run for long lasting AHK scripts. Running Freeze, then BlockInput should properly run them in order and detect both commands in order, even if both of them take 10 seconds.
 
+Bot will now copy all the included scripts into UserScripts when it generates that folder. Doesn't copy anything with .ahk in the name, but those are all in /IntRX/Resources/Included Scripts
+
+Typing just a name into "File name to run" without an extension will now FIRST try .exe, and if it doesn't find it it tries .ahk, THEN says it cant find the file.
 
 COMMANDS:
-Did a lot of stuff. Bot works probably
+No changes or new commands
