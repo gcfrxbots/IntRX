@@ -9,6 +9,8 @@
 #
 
 
+BadAim - Moves the mouse around eratically. Most effective in shooters and first person games, might not do much in certain games.
+
 BlockInput - Blocks your input, meaning all keys you press won't do anything. Any keys you had held down when the script started will remain held until it ends.
 
 Charge - Forces you to run forward and attack repeatedly (i.e. hold W and spam left click).
@@ -18,5 +20,3 @@ FlipInput - Reverses your movement controls. So W is S, A is D, etc. Also swaps 
 Freeze - Exactly like BlockInput, but any keys being held when the script starts will be released before your input is blocked.
 
 SpamKey - When doing this command, users will specify a key, and that key will be spammed. For example, "!spamkey Space" will spam the Spacebar. Only one key can be spammed, so don't worry about users spamming keyboard shortcuts like Alt+F4.
-
-BadAim - Moves the mouse around eratically. Most effective in shooters and first person games, might not do too much in certain games.
