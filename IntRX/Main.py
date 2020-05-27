@@ -226,10 +226,9 @@ def tick():
                     break
 
 
-t1 = Thread(target = main)
-t2 = Thread(target = refresh)
-t3 = Thread(target = tick)
-
+t1 = Thread(target=main)
+t2 = Thread(target=refresh)
+t3 = Thread(target=tick)
 
 t1.start()
 t2.start()

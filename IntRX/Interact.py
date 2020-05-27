@@ -25,19 +25,23 @@ def importGlobal():
                 cooldown = 0.0
 
             if not disable.lower() in ['yes', 'true', 'disable', 'off']:
-                if not chatcmd[0] == "!":  # Append ! to the command if it isnt there
-                    chatcmd = "!" + chatcmd
+                if chatcmd:  # Prevents errors if there's no chat command specified
+                    if not chatcmd[0] == "!":  # Append ! to the command if it isnt there
+                        chatcmd = "!" + chatcmd
 
-                if "." not in ahkpath[4:]:  # Append .exe onto the end if it isnt there
-                    ahkpath += ".exe"
+                    if "." not in ahkpath[4:]:  # Append .exe onto the end if it isnt there
+                        ahkpath += ".exe"
 
-                if not os.path.exists("../Config/UserScripts/" + ahkpath):
-                    ahkpath = ahkpath[:-4] + ".ahk"
+                    if not os.path.exists("../Config/UserScripts/" + ahkpath):
+                        ahkpath = ahkpath[:-4] + ".ahk"
 
-                if not os.path.exists("../Config/UserScripts/" + ahkpath):
-                    print("File %s does not exist, so the command %s was not added." % (ahkpath, chatcmd))
-                else:
-                    globalCommands.append((chatcmd, cooldown, ahkpath, activewindow))
+                    if not os.path.exists("../Config/UserScripts/" + ahkpath):
+                        print("File %s does not exist, so the command %s was not added." % (ahkpath, chatcmd))
+                    else:
+                        globalCommands.append((chatcmd, cooldown, ahkpath, activewindow))
+                else:  # No cmd specified
+                    print("An entry in your InteractConfig Global page doesn't have a Command specified, so it wasn't loaded.")
+
     print("Loaded " + str(len(globalCommands)) + " global commands.")
     return globalCommands
 
@@ -60,9 +64,12 @@ def importInteraction(activeGame):
                 cooldown = 0.0
 
             if not disable.lower() in ['yes', 'true', 'disable']:
-                if not chatcmd[0] == "!":
-                    chatcmd = "!" + chatcmd
-                interactCommands.append((chatcmd, cooldown, gamecmd))
+                if chatcmd:  # Prevents errors if there's no chat command specified
+                    if not chatcmd[0] == "!":
+                        chatcmd = "!" + chatcmd
+                    interactCommands.append((chatcmd, cooldown, gamecmd))
+                else:  # No cmd specified
+                    print("An entry in your InteractConfig " + activeGame + " page doesn't have a Command specified, so it wasn't loaded.")
     print("Loaded " + str(len(interactCommands)) + " commands for " + activeGame)
     return interactCommands
 
