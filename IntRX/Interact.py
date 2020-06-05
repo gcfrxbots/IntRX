@@ -1,10 +1,19 @@
 import os
+import time
+from Initialize import sendMessage
 try:
     import xlrd
     import pyperclip
 except ImportError as e:
     print(e)
     raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
+
+
+def writeArgs(args):
+    args = args.replace('\r', '')
+    with open("../Config/UserScripts/output.txt", "w") as f:
+        f.write(args)
+
 
 def importGlobal():
     globalCommands = []
@@ -18,8 +27,8 @@ def importGlobal():
             chatcmd = sheet.cell_value(item,0)
             cooldown = sheet.cell_value(item,1)
             disable = sheet.cell_value(item, 2)
-            activewindow = sheet.cell_value(item, 3)
-            ahkpath = sheet.cell_value(item, 4)
+            activeWindow = sheet.cell_value(item, 3)
+            whatToRun = sheet.cell_value(item, 4)
 
             if not cooldown:
                 cooldown = 0.0
@@ -29,21 +38,124 @@ def importGlobal():
                     if not chatcmd[0] == "!":  # Append ! to the command if it isnt there
                         chatcmd = "!" + chatcmd
 
-                    if "." not in ahkpath[4:]:  # Append .exe onto the end if it isnt there
-                        ahkpath += ".exe"
-
-                    if not os.path.exists("../Config/UserScripts/" + ahkpath):
-                        ahkpath = ahkpath[:-4] + ".ahk"
-
-                    if not os.path.exists("../Config/UserScripts/" + ahkpath):
-                        print("File %s does not exist, so the command %s was not added." % (ahkpath, chatcmd))
+                    if whatToRun[0] == "$":
+                        if checkGlobalBuiltInScripts(chatcmd, whatToRun):
+                            globalCommands.append((chatcmd, cooldown, whatToRun, activeWindow))
                     else:
-                        globalCommands.append((chatcmd, cooldown, ahkpath, activewindow))
+                        if "." not in whatToRun:  # Append .exe onto the end if it isnt there
+                            whatToRun += ".exe"
+
+                        if not os.path.exists("../Config/UserScripts/" + whatToRun):
+                            whatToRun = whatToRun[:-4] + ".ahk"
+
+                        if not os.path.exists("../Config/UserScripts/" + whatToRun):
+                            print("File %s does not exist, so the command %s was not added." % (whatToRun, chatcmd))
+                        else:
+                            globalCommands.append((chatcmd, cooldown, whatToRun, activeWindow))
                 else:  # No cmd specified
                     print("An entry in your InteractConfig Global page doesn't have a Command specified, so it wasn't loaded.")
+                    time.sleep(2)
 
-    print("Loaded " + str(len(globalCommands)) + " global commands.")
+    print(">> Loaded " + str(len(globalCommands)) + " global commands.")
     return globalCommands
+
+
+def checkGlobalBuiltInScripts(chatcmd, whatToRun):
+    def isInt(strInput):
+        try:
+            int(strInput)
+            return True
+        except ValueError:
+            return False
+
+    allCommands = whatToRun.split("$")[1:]
+    for fullCmd in allCommands:
+        fullCmd = fullCmd.split(" ")
+        while "" in fullCmd:
+            fullCmd.remove("")
+        command = fullCmd[0]
+        success = False
+        if command == "PRESS":  # $PRESS G
+            if len(fullCmd) == 2:
+                if type(fullCmd[1]) == str:
+                    success = True
+        if command == "HOLD":  # $HOLD G 10 (Hold G for 10 seconds)
+            if len(fullCmd) == 3:
+                if type(fullCmd[1]) == str and isInt(fullCmd[2]):
+                    success = True
+        if command == "SPAM":  # SPAM G 5 (Spam G 5 times)
+            if len(fullCmd) == 3:
+                if type(fullCmd[1]) == str and isInt(fullCmd[2]):
+                    success = True
+        if command == "TYPE":  # TYPE String
+            if len(fullCmd) >= 2:
+                if type(fullCmd[1]) == str:
+                    success = True
+        if command == "WAIT":  # WAIT 5 (Wait 5 seconds)
+            if len(fullCmd) == 2:
+                if isInt(fullCmd[1]):
+                    success = True
+        if command == "RUN":  # RUN Blockinput.exe (Any script from Userscripts folder)
+            if len(fullCmd) == 2:
+                fileName = fullCmd[1]
+                if "." not in fileName:  # Append .exe onto the end if it isnt there
+                    fileName += ".exe"
+                if not os.path.exists("../Config/UserScripts/" + fileName):
+                    fileName = fileName[:-4] + ".ahk"
+                if not os.path.exists("../Config/UserScripts/" + fileName):
+                    print("The file specified in %s does not exist!" % chatcmd)
+                else:
+                    success = True
+        if command == "CHAT":  # TYPE String
+            if len(fullCmd) >= 2:
+                if type(fullCmd[1]) == str:
+                    success = True
+
+        if not success:
+            print("Your global command %s could not be loaded, because it's What to Run field was formatted incorrectly." % chatcmd)
+            time.sleep(2)
+            return False
+    return True
+
+
+def processBuiltInGlobal(fullInteractCmd, cmdArguments, user):
+    if "%ARGS%" in fullInteractCmd and not cmdArguments:
+        return False
+
+    commands = fullInteractCmd.split("$")
+    while "" in commands:
+        commands.remove("")
+    for fullCmd in commands:
+        fullCmd = fullCmd.replace("%ARGS%", cmdArguments.replace("\r", ""))
+        fullCmd = fullCmd.replace("%USER%", user)
+        fullCmd = fullCmd.strip()
+        cmd = fullCmd.split(" ")[0]
+        args = fullCmd.replace(cmd, '').strip()
+        writeArgs(args)
+
+        if cmd == "PRESS":
+            print("Pressing %s." % args)
+            script.runAHK('Resources\PRESS.exe')
+        if cmd == "HOLD":
+            print("Holding %s for %s seconds." % (args.split(" ")[0], args.split(" ")[1]))
+            script.runAHK('Resources\HOLD.exe')
+        if cmd == "SPAM":
+            print("Spamming %s %s times." % (args.split(" ")[0], args.split(" ")[1]))
+            script.runAHK('Resources\SPAM.exe')
+        if cmd == "TYPE":
+            print("Typing %s." % args)
+            script.runAHK('Resources\TYPE.exe')
+        if cmd == "WAIT":
+            print("Waiting %s seconds." % args)
+            time.sleep(int(args))
+        if cmd == "RUN":
+            print("Running %s." % args)
+            script.runAHK(r"..\Config\UserScripts\%s" % args)
+        if cmd == "CHAT":
+            print("Sending %s to chat." % args)
+            print(args)
+            sendMessage(args)
+    return True
 
 
 def importInteraction(activeGame):
@@ -70,7 +182,7 @@ def importInteraction(activeGame):
                     interactCommands.append((chatcmd, cooldown, gamecmd))
                 else:  # No cmd specified
                     print("An entry in your InteractConfig " + activeGame + " page doesn't have a Command specified, so it wasn't loaded.")
-    print("Loaded " + str(len(interactCommands)) + " commands for " + activeGame)
+    print(">> Loaded " + str(len(interactCommands)) + " commands for " + activeGame)
     return interactCommands
 
 

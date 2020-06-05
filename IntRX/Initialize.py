@@ -92,7 +92,7 @@ def formatInteractxlsx():
             worksheet.write(0, 1, "Cooldown", format)
             worksheet.write(0, 2, "Disable", format)
             worksheet.write(0, 3, "Active Window", format)
-            worksheet.write(0, 4, "File Name To Run", format)
+            worksheet.write(0, 4, "What to Run", format)
             worksheet.set_column('B:B', 10, lightformat)
             worksheet.set_column('C:C', 10, redformat)
             worksheet.set_column('D:D', 45, evenlighterformat)
@@ -117,6 +117,14 @@ def formatInteractxlsx():
 
 
 def initSetup():
+    print('''
+-----------------------------------------------------------------------------------------
+Thank you for using IntRX! We put tons of work into this to make it free for you,
+so please consider donating a few dollars to the project to help support development!
+                        https://rxbots.net/donate.html
+-----------------------------------------------------------------------------------------\n''')
+    time.sleep(3)
+
     global settings
     settings = {}
     killbot = False
@@ -130,7 +138,6 @@ def initSetup():
             full_file_name = os.path.join("./Resources/Included Scripts", file)
             if os.path.isfile(full_file_name) and (".ahk" not in full_file_name):
                 shutil.copy(full_file_name, "../Config/UserScripts")
-
 
 
     if not os.path.exists("../Config/UserScripts/Templates"):
@@ -188,7 +195,7 @@ def initSetup():
         time.sleep(2)
 
 
-    print(">> Initial Checkup Complete! Connecting to Chat...")
+    print(">> Initial Checkup Complete!")
     return settings
 
 
@@ -213,14 +220,12 @@ def sendMessage(message):
 def joinRoom(s):
     readbuffer = ""
     Loading = True
-
     while Loading:
         readbuffer = readbuffer + s.recv(1024).decode("utf-8")
         temp = readbuffer.split("\n")
         readbuffer = temp.pop()
 
         for line in temp:
-            print(line)
             Loading = loadingComplete(line)
 
 

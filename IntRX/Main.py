@@ -1,5 +1,5 @@
 from Initialize import *
-from Interact import importInteraction, InteractGame, importGlobal, script
+from Interact import importInteraction, InteractGame, importGlobal, script, processBuiltInGlobal, writeArgs
 import datetime
 import re
 import time
@@ -73,12 +73,6 @@ def getint(cmdarguments):
         return None
 
 
-def writeArgs(args):
-    args = args.replace('\r', '')
-    with open("../Config/UserScripts/output.txt", "w") as f:
-        f.write(args)
-
-
 def runCmdExtras(command, cmdarguments, item):
     tempCooldown = datetime.datetime.now() + datetime.timedelta(seconds=item[1])
     tempGlobalCooldown = datetime.datetime.now() + datetime.timedelta(seconds=settings["CD BETWEEN CMDS"])
@@ -86,6 +80,25 @@ def runCmdExtras(command, cmdarguments, item):
     cooldowns.update({"00rx_globalCD": tempGlobalCooldown})
     writeArgs(cmdarguments)
     print(item[0] + " executed!")
+
+
+def globalCooldown():
+    global cooldowns
+    if "00rx_globalCD" in cooldowns.keys():  # This is just weird so theres no way anyone will ever accidentally have their command say this. Note, if your command says this and you ask for help, ill be pissed.
+        timeleft = cooldowns["00rx_globalCD"] - datetime.datetime.now()
+        timeleftSecs = round(timeleft.total_seconds())
+        return timeleftSecs
+    return 0
+
+
+def cmdCooldown(command):
+    global cooldowns
+    if command in cooldowns.keys():
+        timeleft = cooldowns[command] - datetime.datetime.now()
+        timeleftSecs = round(timeleft.total_seconds())
+        return timeleftSecs
+    return 0
+
 
 
 def runcommand(command, cmdarguments, user):
@@ -100,21 +113,12 @@ def runcommand(command, cmdarguments, user):
 
     if run:
         # Manage cooldowns
-        if "00rx_globalCD" in cooldowns.keys():  # This is just weird so theres no way anyone will ever accidentally have their command say this. Note, if your command says this and you ask for help, ill be pissed.
-            timeleft = cooldowns["00rx_globalCD"] - datetime.datetime.now()
-            timeleftSecs = round(timeleft.total_seconds())
-            if timeleftSecs == 0:
-                pass
-            else:
-                sendMessage("Since a command was run recently, nobody can interact for %s more seconds." % timeleftSecs)
-                return
-
-        if command in cooldowns.keys():
-            timeleft = cooldowns[command] - datetime.datetime.now()
-            timeleftSecs = round(timeleft.total_seconds())
-            if timeleftSecs > 1 and (str(timeleft) != "-1"):
-                sendMessage("That command is still on cooldown for %s seconds." % timeleftSecs)
-                return
+        if globalCooldown() > cmdCooldown(command):
+            sendMessage("Since a command was run recently, nobody can interact for %s more seconds." % globalCooldown())
+            return
+        elif cmdCooldown(command) > globalCooldown():
+            sendMessage("That command is still on cooldown for %s seconds." % cmdCooldown(command))
+            return
 
         for item in currentCommands:  # Test if the command run is for a loaded game
             if command.lower() == item[0].lower():  # Command detected, pass this to the InteractGame class.
@@ -124,6 +128,14 @@ def runcommand(command, cmdarguments, user):
 
         for item in globalCommands:  # Test if command run is a global command
             if command.lower() == item[0].lower():  # Command detected, run the file
+
+                if item[2][0] == "$":  # Process built-in global script
+
+                    if not processBuiltInGlobal(item[2], cmdarguments, user):
+                        sendMessage("That command requires you to provide an argument to run.")
+                        return
+                    runCmdExtras(command, cmdarguments, item)
+                    return
 
                 if item[3]:  # Do this stuff if there's a specified active window
                     if item[3] in GetWindowText(GetForegroundWindow()):
