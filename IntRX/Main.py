@@ -21,6 +21,7 @@ class antiCommand:  # Anticommands, my name for grabbing the command from a chat
     def trimSetting(self):
         if settings["COMMAND PHRASE"]:
             phrase = settings["COMMAND PHRASE"].lower()
+            phrase = phrase.replace("%CMD%", "%cmd%")
             self.fromLeft = 0
             self.fromRight = 0
             self.leftStr = phrase.split("%cmd%", 1)[0]

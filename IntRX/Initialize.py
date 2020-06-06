@@ -184,11 +184,13 @@ so please consider donating a few dollars to the project to help support develop
         stopBot("Invalid BOT OAUTH - Your oauth should start with 'oauth:'")
     if not settings['BOT NAME'] or not settings['CHANNEL']:
         stopBot("Missing BOT NAME or CHANNEL - Please follow directions in the settings or readme")
+
     if settings["COMMAND PHRASE"]:
-        if not "%cmd%" in settings["COMMAND PHRASE"]:
-            stopBot("Your COMMAND PHRASE does not have %cmd% in it anywhere.")
-        if len(settings["COMMAND PHRASE"].split("%cmd%", 1)[0]) < 3:
-            stopBot("Your setting for COMMAND PHRASE is too short. You need at least 4 characters before %cmd%. ")
+        settingsCmdPhrase = settings["COMMAND PHRASE"].replace("%CMD%", "%cmd%")
+        if not "%cmd%" in settingsCmdPhrase:
+            stopBot("Your COMMAND PHRASE does not have %CMD% in it anywhere.")
+        if len(settingsCmdPhrase.split("%cmd%", 1)[0]) < 3:
+            stopBot("Your setting for COMMAND PHRASE is too short. You need at least 4 characters before %CMD%. ")
         print("\n\n IMPORTANT! You have a COMMAND PHRASE set in your Settings. NORMAL COMMANDS WON'T WORK!"
               "\n The bot will ONLY run commands via phrases sent only by the specified bot accounts. "
               "\n If you don't know what this means, remove your COMMAND PHRASE setting and read the documentation.\n")
