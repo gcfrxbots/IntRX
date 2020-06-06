@@ -123,8 +123,15 @@ def runcommand(command, cmdarguments, user):
 
         for item in currentCommands:  # Test if the command run is for a loaded game
             if command.lower() == item[0].lower():  # Command detected, pass this to the InteractGame class.
+                cmdToRun = item[2]
+                cooldown = item[1]
+                if "%ARGS" in cmdToRun and not cmdarguments:
+                    sendMessage("That command requires you to provide an argument to run.")
+                    return
+                cmdToRun = cmdToRun.replace("%ARGS%", cmdarguments)
+                cmdToRun = cmdToRun.replace("%USER%", user)
                 runCmdExtras(command, cmdarguments, item)
-                interact(activeGame, item[2], item[1], cmdarguments, user)
+                interact(activeGame, cmdToRun, cooldown, cmdarguments, user)
                 return
 
         for item in globalCommands:  # Test if command run is a global command
