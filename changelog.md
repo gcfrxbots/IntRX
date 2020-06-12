@@ -11,6 +11,7 @@ Use %USER% as another variable, to display the username of the person who typed 
 Bot runs automatic checks to ensure the commands are formatted correctly before loading them.
 
 (0.9.2) - %ARGS% and %USER% can now be used in all games in their "Command to run" fields.
+(0.9.3) - Fixed allowing %ARGS% to be in the place of a number for $HOLD and $SPAM
 
 
 FUNCTIONALITY:

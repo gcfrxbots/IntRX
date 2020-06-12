@@ -62,11 +62,14 @@ def importGlobal():
 
 def checkGlobalBuiltInScripts(chatcmd, whatToRun):
     def isInt(strInput):
-        try:
-            int(strInput)
+        if strInput.strip() == "%ARGS%":
             return True
-        except ValueError:
-            return False
+        else:
+            try:
+                int(strInput)
+                return True
+            except ValueError:
+                return False
 
     allCommands = whatToRun.split("$")[1:]
     for fullCmd in allCommands:
