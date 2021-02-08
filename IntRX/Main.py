@@ -1,12 +1,11 @@
-from Initialize import *
-from Interact import importInteraction, InteractGame, importGlobal, script, processBuiltInGlobal, writeArgs
+from Interact import *
 import datetime
 import re
 import time
 from threading import Thread
 from win32gui import GetWindowText, GetForegroundWindow
 
-settings = initSetup()
+
 interact = InteractGame()
 currentCommands = False
 
@@ -102,15 +101,19 @@ def cmdCooldown(command):
 
 
 
-def runcommand(command, cmdarguments, user):
+def runcommand(command, cmdArguments, user):
     global currentCommands, activeGame, cooldowns, globalCommands
     if not currentCommands:
         currentCommands = []
     run = False
+
     for item in currentCommands, globalCommands:
         for i in item:
             if command.lower() == i[0].lower():
                 run = True
+
+    if not run:
+        sendMessage("Invalid command")
 
     if run:
         # Manage cooldowns
@@ -125,13 +128,13 @@ def runcommand(command, cmdarguments, user):
             if command.lower() == item[0].lower():  # Command detected, pass this to the InteractGame class.
                 cmdToRun = item[2]
                 cooldown = item[1]
-                if "%ARGS" in cmdToRun and not cmdarguments:
+                if "%ARGS" in cmdToRun and not cmdArguments:
                     sendMessage("That command requires you to provide an argument to run.")
                     return
-                cmdToRun = cmdToRun.replace("%ARGS%", cmdarguments)
+                cmdToRun = cmdToRun.replace("%ARGS%", cmdArguments)
                 cmdToRun = cmdToRun.replace("%USER%", user)
-                runCmdExtras(command, cmdarguments, item)
-                interact(activeGame, cmdToRun, cooldown, cmdarguments, user)
+                runCmdExtras(command, cmdArguments, item)
+                interact(activeGame, cmdToRun, cooldown, cmdArguments, user)
                 return
 
         for item in globalCommands:  # Test if command run is a global command
@@ -139,20 +142,26 @@ def runcommand(command, cmdarguments, user):
 
                 if item[2][0] == "$":  # Process built-in global script
 
-                    if not processBuiltInGlobal(item[2], cmdarguments, user):
+                    if isValidInt(cmdArguments):  # Process MAX ARG setting
+                        if int(cmdArguments) >= settings["MAX ARG"]:
+                            sendMessage("That value is too high, please try again with a lower number.")
+                            return
+
+                    if not processBuiltInGlobal(item[2], cmdArguments, user):  # This runs the exe
                         sendMessage("That command requires you to provide an argument to run.")
                         return
-                    runCmdExtras(command, cmdarguments, item)
+
+                    runCmdExtras(command, cmdArguments, item)
                     return
 
                 if item[3]:  # Do this stuff if there's a specified active window
                     if item[3] in GetWindowText(GetForegroundWindow()):
-                        runCmdExtras(command, cmdarguments, item)
+                        runCmdExtras(command, cmdArguments, item)
                         script.runAHK(r"..\Config\UserScripts\\" + item[2])
                         return
 
                 else:  # Otherwise just active the command
-                    runCmdExtras(command, cmdarguments, item)
+                    runCmdExtras(command, cmdArguments, item)
                     script.runAHK(r"..\Config\UserScripts\\" + item[2])
                     return
 

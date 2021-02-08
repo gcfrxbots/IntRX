@@ -12,6 +12,7 @@ Bot runs automatic checks to ensure the commands are formatted correctly before 
 
 (0.9.2) - %ARGS% and %USER% can now be used in all games in their "Command to run" fields.
 (0.9.3) - Fixed allowing %ARGS% to be in the place of a number for $HOLD and $SPAM
+(0.9.4) - Added MAX ARGS setting to limit users from spamming hundreds of commands at once. Restructured imports a bit so Main imports everything from Interact which imports everything from Initialize, as it should be.
 
 
 FUNCTIONALITY:

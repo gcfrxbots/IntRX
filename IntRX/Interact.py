@@ -1,6 +1,6 @@
 import os
 import time
-from Initialize import sendMessage
+from Initialize import *
 try:
     import xlrd
     import pyperclip
@@ -8,6 +8,7 @@ except ImportError as e:
     print(e)
     raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
 
+settings = initSetup()
 
 def writeArgs(args):
     args = args.replace('\r', '')
@@ -59,18 +60,17 @@ def importGlobal():
     print(">> Loaded " + str(len(globalCommands)) + " global commands.")
     return globalCommands
 
+def isValidInt(strInput):
+    if strInput.strip() == "%ARGS%":
+        return True
+    else:
+        try:
+            int(strInput)
+            return True
+        except ValueError:
+            return False
 
 def checkGlobalBuiltInScripts(chatcmd, whatToRun):
-    def isInt(strInput):
-        if strInput.strip() == "%ARGS%":
-            return True
-        else:
-            try:
-                int(strInput)
-                return True
-            except ValueError:
-                return False
-
     allCommands = whatToRun.split("$")[1:]
     for fullCmd in allCommands:
         fullCmd = fullCmd.split(" ")
@@ -84,11 +84,11 @@ def checkGlobalBuiltInScripts(chatcmd, whatToRun):
                     success = True
         if command == "HOLD":  # $HOLD G 10 (Hold G for 10 seconds)
             if len(fullCmd) == 3:
-                if type(fullCmd[1]) == str and isInt(fullCmd[2]):
+                if type(fullCmd[1]) == str and isValidInt(fullCmd[2]):
                     success = True
         if command == "SPAM":  # SPAM G 5 (Spam G 5 times)
             if len(fullCmd) == 3:
-                if type(fullCmd[1]) == str and isInt(fullCmd[2]):
+                if type(fullCmd[1]) == str and isValidInt(fullCmd[2]):
                     success = True
         if command == "TYPE":  # TYPE String
             if len(fullCmd) >= 2:
@@ -96,7 +96,7 @@ def checkGlobalBuiltInScripts(chatcmd, whatToRun):
                     success = True
         if command == "WAIT":  # WAIT 5 (Wait 5 seconds)
             if len(fullCmd) == 2:
-                if isInt(fullCmd[1]):
+                if isValidInt(fullCmd[1]):
                     success = True
         if command == "RUN":  # RUN Blockinput.exe (Any script from Userscripts folder)
             if len(fullCmd) == 2:
@@ -129,7 +129,9 @@ def processBuiltInGlobal(fullInteractCmd, cmdArguments, user):
     while "" in commands:
         commands.remove("")
     for fullCmd in commands:
-        fullCmd = fullCmd.replace("%ARGS%", cmdArguments.replace("\r", ""))
+        # Replace the variables with their actual values
+        arg = cmdArguments.replace("\r", "")
+        fullCmd = fullCmd.replace("%ARGS%", arg)
         fullCmd = fullCmd.replace("%USER%", user)
         fullCmd = fullCmd.strip()
         cmd = fullCmd.split(" ")[0]
