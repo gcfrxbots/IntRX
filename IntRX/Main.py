@@ -211,7 +211,8 @@ supportedGames = {
     "Fallout3": "Fallout 3",
     "Minecraft": "Minecraft",
     "Subnautica": "Subnautica",
-    "The Witcher 3": "Witcher 3"
+    "The Witcher 3": "Witcher 3",
+    "Valheim": "Valheim"
 }
 
 

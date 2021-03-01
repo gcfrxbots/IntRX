@@ -76,7 +76,7 @@ def formatSettingsXlsx():
 def formatInteractxlsx():
     try:
         with xlsxwriter.Workbook('../Config/InteractConfig.xlsx') as workbook:  # FORMATTING
-            listGames = ("Skyrim", "Oblivion", "Fallout 4", "Fallout NV", "Fallout 3", "Minecraft", "Subnautica", "Witcher 3")
+            listGames = ("Skyrim", "Oblivion", "Fallout 4", "Fallout NV", "Fallout 3", "Minecraft", "Subnautica", "Witcher 3", "Valheim")
 
             format = workbook.add_format({'bold': True, 'center_across': True, 'font_color': 'white', 'bg_color': 'gray'})
             lightformat = workbook.add_format({'center_across': True, 'font_color': 'black', 'bg_color': '#DCDCDC', 'border': True})

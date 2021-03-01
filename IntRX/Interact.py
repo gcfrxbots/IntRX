@@ -240,6 +240,15 @@ class InteractGame:
                     f.write(item + "\n")
         script.runAHK('Resources\Witcher3.exe')
 
+    def Valheim(self, cmdToRun):
+        with open('Resources/cmd.txt', 'w') as f:
+            for item in cmdToRun:
+                if item == ' ':
+                    f.write('Space\n')
+                else:
+                    f.write(item + "\n")
+        script.runAHK('Resources\Valheim.exe')
+
 
 class scriptTasking:
     def __init__(self):

@@ -14,9 +14,9 @@ Loop, Parse, KeyList, |
 	Send % "{" A_Loopfield " Up}"
 }
 
-SendInput, {`` Down}
+SendInput, {F5 Down}
 Sleep, 15
-SendInput, {`` up}
+SendInput, {F5 up}
 Sleep, 15
 
 
@@ -48,9 +48,9 @@ SendInput, {Enter up}
 Sleep, 20
 
 
-SendInput, {`` Down}
+SendInput, {F5 Down}
 Sleep, 15
-SendInput, {`` up}
+SendInput, {F5 up}
 Sleep, 15
 
 return
