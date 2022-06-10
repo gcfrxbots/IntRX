@@ -17,7 +17,7 @@ def writeArgs(args):
 
 
 def importGlobal():
-    globalCommands = []
+    globalCommands = []  # This should totally be a dict but I coded this before I knew how to do dicts and dont feel like rewriting...
     # Read the settings file
     wb = xlrd.open_workbook('../Config/InteractConfig.xlsx')
     sheet = wb.sheet_by_name("Global")
@@ -31,6 +31,16 @@ def importGlobal():
             activeWindow = sheet.cell_value(item, 3)
             whatToRun = sheet.cell_value(item, 4)
 
+            subOnly = sheet.cell_value(item, 5)
+            donoCost = sheet.cell_value(item, 6)
+            reward = sheet.cell_value(item, 7)
+
+
+            if subOnly.lower() == "yes":
+                subOnly = True
+            else:
+                subOnly = False
+
             if not cooldown:
                 cooldown = 0.0
 
@@ -41,7 +51,7 @@ def importGlobal():
 
                     if whatToRun[0] == "$":
                         if checkGlobalBuiltInScripts(chatcmd, whatToRun):
-                            globalCommands.append((chatcmd, cooldown, whatToRun, activeWindow))
+                            globalCommands.append((chatcmd, cooldown, whatToRun, activeWindow, subOnly, donoCost, reward))
                     else:
                         if "." not in whatToRun:  # Append .exe onto the end if it isnt there
                             whatToRun += ".exe"
@@ -159,7 +169,7 @@ def processBuiltInGlobal(fullInteractCmd, cmdArguments, user):
         if cmd == "CHAT":
             print("Sending %s to chat." % args)
             print(args)
-            sendMessage(args)
+            #sendMessage(args)
     return True
 
 
@@ -177,6 +187,10 @@ def importInteraction(activeGame):
             disable = sheet.cell_value(item, 2)
             gamecmd = sheet.cell_value(item, 3)
 
+            subOnly = sheet.cell_value(item, 4)
+            donoCost = sheet.cell_value(item, 5)
+            reward = sheet.cell_value(item, 6)
+
             if not cooldown:
                 cooldown = 0.0
 
@@ -184,7 +198,7 @@ def importInteraction(activeGame):
                 if chatcmd:  # Prevents errors if there's no chat command specified
                     if not chatcmd[0] == "!":
                         chatcmd = "!" + chatcmd
-                    interactCommands.append((chatcmd, cooldown, gamecmd))
+                    interactCommands.append((chatcmd, cooldown, gamecmd, subOnly, donoCost, reward))
                 else:  # No cmd specified
                     print("An entry in your InteractConfig " + activeGame + " page doesn't have a Command specified, so it wasn't loaded.")
     print(">> Loaded " + str(len(interactCommands)) + " commands for " + activeGame)
@@ -209,9 +223,11 @@ class InteractGame:
         pyperclip.copy(cmdToRun)
         script.runAHK('Resources\Minecraft.exe')
 
+
     def Subnautica(self, cmdToRun):
         pyperclip.copy(cmdToRun)
         script.runAHK('Resources\Subnautica.exe')
+
 
     def Bethesda(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:
@@ -222,6 +238,7 @@ class InteractGame:
                     f.write(item + "\n")
         script.runAHK('Resources\Bethesda.exe')
 
+
     def FO3(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:
             for item in cmdToRun:
@@ -231,6 +248,7 @@ class InteractGame:
                     f.write(item + "\n")
         script.runAHK('Resources\FO3.exe')
 
+
     def Witcher3(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:
             for item in cmdToRun:
@@ -239,6 +257,7 @@ class InteractGame:
                 else:
                     f.write(item + "\n")
         script.runAHK('Resources\Witcher3.exe')
+
 
     def Valheim(self, cmdToRun):
         with open('Resources/cmd.txt', 'w') as f:

@@ -2,3 +2,7 @@ xlsxwriter
 xlrd==1.2.0
 pyperclip
 pywin32
+pytchat
+requests
+websocket-client
+openpyxl

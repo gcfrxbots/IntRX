@@ -2,15 +2,17 @@ from Interact import *
 import datetime
 import re
 import time
+import json
+from websocket import create_connection
 from threading import Thread
 from win32gui import GetWindowText, GetForegroundWindow
 
 
 interact = InteractGame()
-currentCommands = False
+currentCommands = None
 
 
-class antiCommand:  # Anticommands, my name for grabbing the command from a chat message rather than a command.
+class cmdPhrase:  # Anticommands, my name for grabbing the command from a chat message rather than a command.
     def __init__(self):
         self.fromLeft = 0
         self.fromRight = 0
@@ -47,30 +49,8 @@ class antiCommand:  # Anticommands, my name for grabbing the command from a chat
         return toreturn.replace("!", '')
 
 
-antiCmd = antiCommand()
-
-def getUser(line):
-    seperate = line.split(":", 2)
-    user = seperate[1].split("!", 1)[0]
-    return user
-
-
-def getMessage(line):
-    seperate = line.split(":", 2)
-    message = seperate[2]
-    return message
-
-
 def formatted_time():
     return datetime.datetime.today().now().strftime("%I:%M")
-
-
-def getint(cmdarguments):
-    try:
-        out = int(re.search(r'\d+', cmdarguments).group())
-        return out
-    except:
-        return None
 
 
 def runCmdExtras(command, cmdarguments, item):
@@ -100,7 +80,6 @@ def cmdCooldown(command):
     return 0
 
 
-
 def runcommand(command, cmdArguments, user):
     global currentCommands, activeGame, cooldowns, globalCommands
     if not currentCommands:
@@ -112,16 +91,17 @@ def runcommand(command, cmdArguments, user):
             if command.lower() == i[0].lower():
                 run = True
 
+
     if not run:
-        sendMessage("Invalid command")
+        chatConnection.sendToChat("Invalid command")
 
     if run:
         # Manage cooldowns
         if globalCooldown() > cmdCooldown(command):
-            sendMessage("Since a command was run recently, nobody can interact for %s more seconds." % globalCooldown())
+            chatConnection.sendToChat("Since a command was run recently, nobody can interact for %s more seconds." % globalCooldown())
             return
         elif cmdCooldown(command) > globalCooldown():
-            sendMessage("That command is still on cooldown for %s seconds." % cmdCooldown(command))
+            chatConnection.sendToChat("That command is still on cooldown for %s seconds." % cmdCooldown(command))
             return
 
         for item in currentCommands:  # Test if the command run is for a loaded game
@@ -129,7 +109,7 @@ def runcommand(command, cmdArguments, user):
                 cmdToRun = item[2]
                 cooldown = item[1]
                 if "%ARGS" in cmdToRun and not cmdArguments:
-                    sendMessage("That command requires you to provide an argument to run.")
+                    chatConnection.sendToChat("That command requires you to provide an argument to run.")
                     return
                 cmdToRun = cmdToRun.replace("%ARGS%", cmdArguments)
                 cmdToRun = cmdToRun.replace("%USER%", user)
@@ -138,17 +118,28 @@ def runcommand(command, cmdArguments, user):
                 return
 
         for item in globalCommands:  # Test if command run is a global command
+            subOnly = item[4]
+            donoReq = item[5]
+            reward = item[6]
             if command.lower() == item[0].lower():  # Command detected, run the file
 
-                if item[2][0] == "$":  # Process built-in global script
+                #if subOnly:
 
+
+
+                if donoReq:
+                    if not chatConnection.donoAmt > donoReq:
+                        chatConnection.sendToChat("This command can only be run with a donation of at least $" + str(donoReq))
+                        return
+
+                if item[2][0] == "$":  # Process built-in global script
                     if isValidInt(cmdArguments):  # Process MAX ARG setting
                         if int(cmdArguments) >= settings["MAX ARG"]:
-                            sendMessage("That value is too high, please try again with a lower number.")
+                            chatConnection.sendToChat("That value is too high, please try again with a lower number.")
                             return
 
                     if not processBuiltInGlobal(item[2], cmdArguments, user):  # This runs the exe
-                        sendMessage("That command requires you to provide an argument to run.")
+                        chatConnection.sendToChat("That command requires you to provide an argument to run.")
                         return
 
                     runCmdExtras(command, cmdArguments, item)
@@ -166,40 +157,105 @@ def runcommand(command, cmdArguments, user):
                     return
 
 
-def main():
-    global globalCommands
-    globalCommands = importGlobal()
-    s = openSocket()
-    joinRoom(s)
-    readbuffer = ""
-    while True:
-        readbuffer = readbuffer + s.recv(1024).decode("utf-8")
-        temp = readbuffer.split("\n")
-        readbuffer = temp.pop()
-        for line in temp:
-            if "PING" in line:
-                s.send(bytes("PONG :tmi.twitch.tv\r\n".encode("utf-8")))
-            else:
-                # All these things break apart the given chat message to make things easier to work with.
-                user = getUser(line)
-                message = str(getMessage(line))
-                command = ((message.split(' ', 1)[0]).lower()).replace("\r", "")
-                cmdarguments = message.replace(command or "\r" or "\n", "")[1:]
-                getint(cmdarguments)
-                print(("(" + formatted_time() + ")>> " + user + ": " + message))
-                # Run the commands function
+class mainChat:
+    def __init__(self):
+        self.channel = None
+        self.bitsAmount = 0
+        self.rewardTitle = None
+        self.rewardCost = None
+        self.isSubscriber = False
+        global settings, globalCommands
+        globalCommands = importGlobal()
 
-                if settings["COMMAND PHRASE"]:  # Process anticommands
-                    if user in [settings["BOT NAME"], settings["ALT BOT NAME"]]:
-                        if antiCmd.trimSetting() in message.lower():
-                            extractedCmd = antiCmd.extractCmd(message)
-                            cmdarguments = (extractedCmd.replace(extractedCmd.split(" ")[0], '')).strip()
-                            toRun = extractedCmd.split(" ")[0]
-                            print("Running command from another bot: " + toRun)
-                            runcommand("!" + toRun, cmdarguments, user)
+    def main(self):
+        chatConnection.start()
+        while True:
+            result = chatConnection.ws.recv()
+            resultDict = json.loads(result)
+            print(resultDict)
+            if debugMode:
+                print(resultDict)
+            if "event" in resultDict.keys() and not chatConnection.active:
+                if "is_live" in resultDict["event"]:
+                    print(">> Connection to chat successful!")
+                    self.channel = resultDict["event"]["streamer"]["username"]
+                    # settings["CHANNEL"] = channel
+                    chatConnection.active = True
+                    if chatConnection.puppet:
+                        chatConnection.puppetlogin()
 
-                elif command[0] == "!":  # Only run normal commands if COMMAND PHRASE is blank
-                    runcommand(command, cmdarguments, user)
+            if "event" in resultDict.keys():  # Any actual event is under this
+                eventKeys = resultDict["event"].keys()
+
+                if "reward" in eventKeys:
+                    self.rewardTitle = resultDict["event"]["reward"]["title"]
+                    rewardPrompt = resultDict["event"]["reward"]["prompt"]
+                    self.rewardCost = resultDict["event"]["reward"]["cost"]
+                    user = resultDict["event"]["sender"]["displayname"]
+                    print(
+                        "(" + misc.formatTime() + ")>> [EVENT] " + user + " redeemed reward title %s, prompt %s, for %s points." % (self.rewardTitle, rewardPrompt, self.rewardCost))
+
+                if "subscriber" in eventKeys:
+                    try:
+                        subUsername = resultDict["event"]["subscriber"]["username"]
+                        subMonths = resultDict["event"]["months"]
+                        subLevel = resultDict["event"]["sub_level"]
+                        print(
+                            "(" + misc.formatTime() + ")>> [EVENT] " + subUsername + " subscribed with level %s for %s months." % (subLevel, subMonths))
+                    except:
+                        pass
+
+                if "donations" in eventKeys:
+                    self.bitsAmount = round(resultDict["event"]["donations"][0]["amount"])
+                    user = resultDict["event"]["sender"]["displayname"]
+                    message = resultDict["event"]["message"]
+                    print("(" + misc.formatTime() + ")>> [EVENT] " + user + " cheered %s bits with the message %s" % (self.bitsAmount, message))
+
+
+
+                if "message" in eventKeys:  # Got chat message, display it then process commands
+                    try:
+                        message = resultDict["event"]["message"]
+                        if message:
+                            user = resultDict["event"]["sender"]["displayname"]
+                            command = ((message.split(' ', 1)[0]).lower()).replace("\r", "")
+                            cmdarguments = message.replace(command or "\r" or "\n", "")[1:]
+                            print("(" + misc.formatTime() + ")>> " + user + ": " + message)
+
+
+                            if settings["COMMAND PHRASE"]:  # Process anticommands
+                                if user in [settings["BOT NAME"], settings["ALT BOT NAME"]]:
+                                    if commandPhrase.trimSetting() in message.lower():
+                                        extractedCmd = commandPhrase.extractCmd(message)
+                                        cmdarguments = (extractedCmd.replace(extractedCmd.split(" ")[0], '')).strip()
+                                        toRun = extractedCmd.split(" ")[0]
+                                        print("Running command from another bot: " + toRun)
+                                        runcommand("!" + toRun, cmdarguments, user)
+
+                            elif command[0] == "!":  # Only run normal commands if COMMAND PHRASE is blank
+                                runcommand(command, cmdarguments, user)
+
+                            self.bitsAmount = 0
+
+                    except PermissionError:
+                        pass
+
+            if "disclaimer" in resultDict.keys():  # Should just be keepalives?
+                if resultDict["type"] == "KEEP_ALIVE":
+                    response = {"type": "KEEP_ALIVE"}
+                    chatConnection.sendRequest(response)
+
+            if "error" in resultDict.keys():
+                print("CHAT CONNECTION ERROR : " + resultDict["error"])
+                if resultDict['error'] == "USER_AUTH_INVALID":
+                    print("Channel Auth Token Expired or Invalid - Reauthenticating...")
+                    authenticate()
+                elif resultDict['error'] == "PUPPET_AUTH_INVALID":
+                    print("Bot Account Auth Token Expired or Invalid -  Reauthenticating...")
+                    authenticate()
+                else:
+                    print("Please report this error to rxbots so we can get it resolved.")
+                    print("Try running RXBOT_DEBUG.bat in the RxBot folder to get more info on this error to send to me.")
 
 
 supportedGames = {
@@ -233,8 +289,8 @@ def refresh():
         if cacheActiveGame != activeGame and activeGame:  # Do when user starts NEW game
             print("Now playing " + activeGame)
             cacheActiveGame = activeGame
-            if settings['ANNOUNCE GAME'].lower() == "yes":
-                sendMessage("The streamer is now playing " + activeGame + " and you can interact with it!")
+            if settings['ANNOUNCE GAME'].lower():
+                chatConnection.sendToChat("The streamer is now playing " + activeGame + " and you can interact with it!")
             currentCommands = importInteraction(activeGame)
 
         elif not activeGame:  # If no game is loaded
@@ -256,7 +312,10 @@ def tick():
                     break
 
 
-t1 = Thread(target=main)
+mainChatConnection = mainChat()
+commandPhrase = cmdPhrase()
+
+t1 = Thread(target=mainChatConnection.main())
 t2 = Thread(target=refresh)
 t3 = Thread(target=tick)
 
