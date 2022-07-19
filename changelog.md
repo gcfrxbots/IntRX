@@ -1,15 +1,15 @@
-#VERSION 1.0 Casterlabs
+# VERSION 1.0 Casterlabs
 
 Primary Change: Casterlabs Integration
 
-INTERACTION:
+**INTERACTION:**
 
 Add DEFAULT ARG to add the option to not require an ARG for any command with %ARGS% - Instead it will automatically substitute in a value of your choice.
 
 Added support for Subnautica Below Zero since it functions the exact same as basegame
 
 
-FUNCTIONALITY:
+**FUNCTIONALITY:**
 
 Reworked authentication to be much more seamless. Bot will launch authentication popups to auth, thats it.
 
