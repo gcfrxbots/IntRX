@@ -1,14 +1,7 @@
-import os
-import time
 from Initialize import *
-try:
-    import xlrd
-    import pyperclip
-except ImportError as e:
-    print(e)
-    raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
 
 settings = initSetup()
+
 
 def writeArgs(args):
     args = args.replace('\r', '')
@@ -46,8 +39,8 @@ def importGlobal():
 
             if not disable.lower() in ['yes', 'true', 'disable', 'off']:
                 if chatcmd:  # Prevents errors if there's no chat command specified
-                    if not chatcmd[0] == "!":  # Append ! to the command if it isnt there
-                        chatcmd = "!" + chatcmd
+                    if not chatcmd[0] == settings["PREFIX"]:  # Append the prefix to the command if it isnt there
+                        chatcmd = settings["PREFIX"] + chatcmd
 
                     if whatToRun[0] == "$":
                         if checkGlobalBuiltInScripts(chatcmd, whatToRun):
@@ -70,6 +63,7 @@ def importGlobal():
     print(">> Loaded " + str(len(globalCommands)) + " global commands.")
     return globalCommands
 
+
 def isValidInt(strInput):
     if strInput.strip() == "%ARGS%":
         return True
@@ -79,6 +73,7 @@ def isValidInt(strInput):
             return True
         except ValueError:
             return False
+
 
 def checkGlobalBuiltInScripts(chatcmd, whatToRun):
     allCommands = whatToRun.split("$")[1:]
@@ -132,8 +127,13 @@ def checkGlobalBuiltInScripts(chatcmd, whatToRun):
 
 
 def processBuiltInGlobal(fullInteractCmd, cmdArguments, user):
-    if "%ARGS%" in fullInteractCmd and not cmdArguments:
-        return False
+
+    if "%ARGS%" in fullInteractCmd and not cmdArguments:  # Handle args and see if the user provided an arg or not
+        if settings["DEFAULT ARG"]:
+            cmdArguments = settings["DEFAULT ARG"]
+        else:
+            return False
+
 
     commands = fullInteractCmd.split("$")
     while "" in commands:
@@ -151,25 +151,30 @@ def processBuiltInGlobal(fullInteractCmd, cmdArguments, user):
         if cmd == "PRESS":
             print("Pressing %s." % args)
             script.runAHK('Resources\PRESS.exe')
+
         if cmd == "HOLD":
             print("Holding %s for %s seconds." % (args.split(" ")[0], args.split(" ")[1]))
             script.runAHK('Resources\HOLD.exe')
+
         if cmd == "SPAM":
             print("Spamming %s %s times." % (args.split(" ")[0], args.split(" ")[1]))
             script.runAHK('Resources\SPAM.exe')
+
         if cmd == "TYPE":
             print("Typing %s." % args)
             script.runAHK('Resources\TYPE.exe')
+
         if cmd == "WAIT":
             print("Waiting %s seconds." % args)
             time.sleep(int(args))
+
         if cmd == "RUN":
             print("Running %s." % args)
             script.runAHK(r"..\Config\UserScripts\%s" % args)
+
         if cmd == "CHAT":
             print("Sending %s to chat." % args)
-            print(args)
-            #sendMessage(args)
+            chatConnection.sendToChat(args)
     return True
 
 
@@ -196,8 +201,8 @@ def importInteraction(activeGame):
 
             if not disable.lower() in ['yes', 'true', 'disable']:
                 if chatcmd:  # Prevents errors if there's no chat command specified
-                    if not chatcmd[0] == "!":
-                        chatcmd = "!" + chatcmd
+                    if not chatcmd[0] == settings["PREFIX"]:
+                        chatcmd = settings["PREFIX"] + chatcmd
                     interactCommands.append((chatcmd, cooldown, gamecmd, subOnly, donoCost, reward))
                 else:  # No cmd specified
                     print("An entry in your InteractConfig " + activeGame + " page doesn't have a Command specified, so it wasn't loaded.")
@@ -288,3 +293,4 @@ class scriptTasking:
 
 
 script = scriptTasking()
+interact = InteractGame()

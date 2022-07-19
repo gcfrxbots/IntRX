@@ -5,6 +5,5 @@ pause
 py -3.7 -m pip install -r requirements.txt --user --no-warn-script-location
 
 py -3.7 ../IntRX/Initialize.py --g
-py -3.7 ../IntRX/Authenticate.py
 
 pause

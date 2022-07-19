@@ -4,7 +4,6 @@ import time
 import shutil
 import json
 from websocket import create_connection
-import urllib, urllib.request
 import subprocess
 import datetime
 from distutils.dir_util import copy_tree
@@ -13,6 +12,7 @@ try:
     import xlrd
     import xlsxwriter
     from openpyxl import load_workbook
+    import pyperclip
 except ImportError as e:
     print(e)
     raise ImportError(">>> One or more required packages are not properly installed! Run INSTALL_REQUIREMENTS.bat to fix!")
@@ -31,28 +31,30 @@ debugMode = (vars(parser.parse_args())["debugMode"])
 '''FORMAT ---->   ("Option", "Default", "This is a description"), '''
 defaultSettings = [
     ("PLATFORM", "Twitch", "Choose your streaming platform: Twitch, Youtube, Caffeine, Brime, Trovo, Glimesh."),
-    ("CHAT AS RXBOTS", "No", "Set to Yes for all bot messages in your chat to be sent from the user rxbots, or No if you want the messages to be from your own account or your own bot account."),
+    ("CHAT AS RXBOTS", "No", "Set to Yes for all bot messages in your chat to be sent from the user rxbots, or No if you want the messages to be from your own account or your own bot account. (Yes/No)"),
     ("", "", ""),
+    ("PREFIX", "!", "The symbol or prefix to tell the bot that a message is a command intended for it. Set to No for no prefix at all (For twitch plays or similar). Recommend ! ? $ or #."),
     ("ANNOUNCE GAME", "Yes", "Announce in chat when you begin playing a game that the bot supports. (Yes/No)"),
-    ("REFRESH INTERVAL", 5, "The period of time, in seconds, that the bot refreshes your active window to load or unload commands for a game."),
     ("CD BETWEEN CMDS", 15, "The cooldown, in seconds, between two consecutive commands."),
+    ("DEFAULT ARG", "No", "Set to No to require an argument for any commands with %ARGS%. Set to anything else to use that value if the user doesn't provide an argument. "),
     ("MAX ARG", 25, "The highest integer that a user can provide for %ARGS%. Used to prevent things like $SPAM from being run 99999 times."),
     ("", "", ""),
-    ("ALT BOT NAME", "", "If you use another bot which uses its own Twitch account, such as NightBot or StreamElements, type its name here (Lowercase)"),
-    ("COMMAND PHRASE", "", "If this isn't empty, commands will only be accepted from your bot(s), and must be executed via this phrase. Use %cmd% to mark where the command goes. Check the site for more info."),
+    ("ALT BOT NAME", "", "If you use another bot which uses its own account, such as NightBot or StreamElements, type its name here"),
+    ("COMMAND PHRASE", "", "If this isn't empty, commands will only be accepted from your bot(s), and must be executed via this phrase. Use %CMD% to mark where the command goes. Check the site for more info."),
 ]
 '''----------------------END SETTINGS----------------------'''
 
-# TODO - ADD "USE PREFIX" SETTING - See most recent post in #scripts
 # TODO - Make CHAT AS RXBOTS work - See message from END3R
-# TODO - Finish Interactconfig changes
+# TODO - Finish Interactconfig changes - Done?
+# TODO - ADD "USE PREFIX" SETTING - See most recent post in #scripts - Done?
 # TODO - NEW COMMAND PHRASES
+# TODO - Rework Command Phrase with better logic
 
 
 def stopBot(err):
     print(">>>>>---------------------------------------------------------------------------<<<<<")
     print(err)
-    print("More info can be found here: https://rxbots.net/intrx-setup.html")
+    print("More info can be found here: https://rxbots.net/intrx-setup.html\n")
     print(">>>>>----------------------------------------------------------------------------<<<<<")
     time.sleep(3)
     quit()
@@ -77,7 +79,10 @@ def formatSettingsXlsx():
             col = 0
             for option, default, description in defaultSettings:
                 worksheet.write(row,  col, option)
-                worksheet.write(row,  col + 1, default)
+                if isinstance(default, int):
+                    worksheet.write(row,  col + 1, default)
+                else:
+                    worksheet.write(row, col + 1, str(default))  # This prevents Yes and No from being written as bools in excel
                 worksheet.write(row,  col + 2, description)
                 row += 1
         print("Settings.xlsx has been configured successfully.")
@@ -110,11 +115,22 @@ def formatInteractxlsx():
             worksheet.write(0, 4, "What to Run", format)
             worksheet.write(0, 5, "Sub Only", format)
             worksheet.write(0, 6, "Donation Cost", format)
-            worksheet.write(0, 7, "Reward to Redeem", format)
+            worksheet.write(0, 7, "Reward/Min. Cost", format)
             worksheet.set_column('B:B', 10, lightformat)
             worksheet.set_column('C:C', 10, redformat)
             worksheet.set_column('D:D', 30, evenlighterformat)
             worksheet.set_column('F:H', 20, greenformat)
+
+            # COMMENTS FOR ADDITIONAL CLARITY
+
+            worksheet.write_comment('A1', "This is what people will type in chat to run your command. If you don't specify a prefix, the bot will automatically add the PREFIX setting to the start (Like dragon will be !dragon unless you have no prefix)")
+            worksheet.write_comment('B1', "This is how many seconds must pass after this command is run before any user can run it again.")
+            worksheet.write_comment('C1', "Leave empty unless you want to temporarily disable the command, then just type Yes in the field.")
+            worksheet.write_comment('D1', "The name of the window that must be active for this command to work. To get a window name, hover over the icon in your taskbar and the text at the top of the popup is your active window. You can shorten it as well (Like Minecraft will work for windows named Minecraft 1.12 or Minecraft 1.19)")
+            worksheet.write_comment('E1', "Specify an executable located in the UserScripts folder, or any of the following: $PRESS [key] | $HOLD [key] [seconds] | $SPAM [key] [times] | $TYPE [message] | $CHAT [message] | $RUN [file in UserScripts] | $WAIT [seconds]")
+            worksheet.write_comment('F1', "Set to Yes if only subscribers can run this, or No (or leave empty) if anyone can.")
+            worksheet.write_comment('G1', "Specify a donation value that must be included with the command for the command to run. This only works with built-in chat donations like Bits on Twitch.")
+            worksheet.write_comment('H1', "Choose the name of a reward that must be redeemed with the command for the command to run. Alternately, if you provide a number, any channel reward with a point cost greater than or equal to that number will work.")
 
             for item in listGames:  # FORMAT GAMES
                 worksheet = workbook.add_worksheet(item)
@@ -133,7 +149,17 @@ def formatInteractxlsx():
                 worksheet.set_column('B:B', 10, lightformat)  # END FORMATTING
                 worksheet.set_column('C:C', 10, redformat)  # END FORMATTING
                 worksheet.set_column('E:G', 20, greenformat)
-            # Create Global Worksheet
+
+                # COMMENTS FOR ADDITIONAL CLARITY
+
+                worksheet.write_comment('A1', "THIS COMMAND WILL ONLY WORK WHEN THE GAME IS ACTIVE! This is what people will type in chat to run your command. If you don't specify a prefix, the bot will automatically add the PREFIX setting to the start (Like dragon will be !dragon unless you have no prefix)")
+                worksheet.write_comment('B1', "This is how many seconds must pass after this command is run before any user can run it again.")
+                worksheet.write_comment('C1', "Leave empty unless you want to temporarily disable the command, then just type Yes in the field.")
+                worksheet.write_comment('D1', "The in-game console command the bot should run when the command is executed. Make sure the command is a valid command, and your game's console is enabled!")
+                worksheet.write_comment('E1', "Set to Yes if only subscribers can run this, or No (or leave empty) if anyone can.")
+                worksheet.write_comment('F1', "Specify a donation value that must be included with the command for the command to run. This only works with built-in chat donations like Bits on Twitch.")
+                worksheet.write_comment('G1', "Choose the name of a reward that must be redeemed with the command for the command to run. Alternately, if you provide a number, any channel reward with a point cost greater than or equal to that number will work.")
+
 
         print("InteractConfig.xlsx has been updated successfully.")
     except PermissionError:
@@ -149,10 +175,15 @@ def readSettings():
         else:
             option = sheet.cell_value(item,0)
             setting = sheet.cell_value(item,1)
+
+            if setting == "No" and option == "PREFIX":  # Exception for PREFIX to make the option an empty string rather than a bool
+                setting = ""
+
             if setting == "Yes":
                 setting = True
             if setting == "No":
                 setting = False
+
 
             settings[option] = setting
 
@@ -249,7 +280,7 @@ def initSetup():
         formatInteractxlsx()
 
     if killbot:
-        stopBot("\nPlease open the Config folder and edit Settings.xlsx by following the readme, then start the bot again.")
+        stopBot("\nPlease open the Config folder and edit Settings.xlsx by following the readme, then start the bot again. \nYou should also set the platform you would like to connect to.")
 
     # Read the settings file
     settings = readSettings()
@@ -341,6 +372,9 @@ class chat:
                     "type": "CHAT",
                     "message": message,
                     "chatter": "PUPPET"}
+
+            if settings["CHAT AS RXBOTS"]:
+                request["isUserGesture"] = False
             self.sendRequest(request)
 
     def start(self):

@@ -1,12 +1,6 @@
-from websocket import create_connection
-import json
-import time
-import datetime
 import string
 import random
 import webbrowser
-import os
-import subprocess
 from Initialize import *
 
 
@@ -48,14 +42,6 @@ def getPlatform():
 
                 else:
                     print("No platform detected.")
-
-
-
-
-
-
-
-
 
 
 
@@ -109,7 +95,7 @@ class chatAuth:
                         print("2. Send all chat messages as a different user  [ Warning - Will require a subscription to Casterlabs Plus in the future ]")
                         inp = input("Please type 1 or 2\n >> ")
                         while inp not in ['1', '2']:
-                            inp = input("Please type 1 or 2\n >> ")
+                            inp = input("Please type 1 or 2\n >> ")  # TODO - Might be freezing here
                         if inp == '1':
                             changeChatSetting(True)
                         elif inp == '2':
