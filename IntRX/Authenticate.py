@@ -1,8 +1,11 @@
 import string
 import random
 import webbrowser
+import os
 from Initialize import *
 
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')
 
 def formatted_time():
     return datetime.datetime.today().now().strftime("%I:%M")
@@ -15,6 +18,14 @@ def ran16characterstring():
 def ran8digitstring():
     digits = string.digits
     return ''.join(random.choice(digits) for i in range(8))
+
+def message(msg):
+    cls()
+    print("\n\n\n\n\n\n>>>>>---------------------------------------------------------------------------<<<<<")
+    print(msg)
+    print(">>>>>----------------------------------------------------------------------------<<<<<")
+    time.sleep(3)
+    cls()
 
 
 validPlatforms = ["twitch", "youtube", "trovo", "glimesh", "brime", "caffeine"]
@@ -81,8 +92,9 @@ class chatAuth:
                     file.write(token)
                     file.close()
 
-
+                    cls()
                     print("Login to your channel's account successful!\n\n")
+                    time.sleep(2)
                     print("Do you wish to have the bot chat through a different user? If you choose No, your bot will send messages to chat from your own account, not its own bot account.")
                     inp = input("Please type Y or N\n >> ").lower()
 
@@ -101,6 +113,8 @@ class chatAuth:
                         elif inp == '2':
                             changeChatSetting(False)
                             self.main("puppet")
+
+                        print("Login successful! All set, you can close this now.")
 
             if "token:" in result and account == "puppet":
                 token = json.loads(result)

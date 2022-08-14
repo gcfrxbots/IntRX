@@ -39,16 +39,16 @@ defaultSettings = [
     ("DEFAULT ARG", "No", "Set to No to require an argument for any commands with %ARGS%. Set to anything else to use that value if the user doesn't provide an argument. "),
     ("MAX ARG", 25, "The highest integer that a user can provide for %ARGS%. Used to prevent things like $SPAM from being run 99999 times."),
     ("", "", ""),
-    ("ALT BOT NAME", "", "If you use another bot which uses its own account, such as NightBot or StreamElements, type its name here"),
+    ("ALT BOT NAMES", "", "If you use another bot which uses its own account, such as NightBot or StreamElements, type their names here. Separate by a comma."),
     ("COMMAND PHRASE", "", "If this isn't empty, commands will only be accepted from your bot(s), and must be executed via this phrase. Use %CMD% to mark where the command goes. Check the site for more info."),
 ]
 '''----------------------END SETTINGS----------------------'''
 
 # TODO - Make CHAT AS RXBOTS work - See message from END3R
-# TODO - Finish Interactconfig changes - Done?
-# TODO - ADD "USE PREFIX" SETTING - See most recent post in #scripts - Done?
 # TODO - NEW COMMAND PHRASES
 # TODO - Rework Command Phrase with better logic
+# TODO - Mouse Movement / Control
+# TODO - Voice Control
 
 
 def stopBot(err):

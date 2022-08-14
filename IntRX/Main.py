@@ -155,12 +155,14 @@ class commands:
 
 class mainChat:
     def __init__(self):
+        global settings
         self.channel = None
         self.bitsAmount = 0
         self.rewardTitle = None
         self.rewardCost = None
         self.isSubscriber = False
-        global settings
+        self.cmdPhraseUsers = settings["ALT BOT NAMES"].replace(" ", "").lower().split(",")
+
 
     def main(self):
         chatConnection.start()
@@ -174,14 +176,19 @@ class mainChat:
             if "event" in resultDict.keys() and not chatConnection.active:
                 if "is_live" in resultDict["event"]:
                     print(">> Connection to chat successful!")
-                    self.channel = resultDict["event"]["streamer"]["username"]
-                    # settings["CHANNEL"] = channel
                     chatConnection.active = True
                     if chatConnection.puppet:
                         chatConnection.puppetlogin()
 
             if "event" in resultDict.keys():  # Any actual event is under this
                 eventKeys = resultDict["event"].keys()
+
+                # Update self.channel
+                if "event_type" in eventKeys:
+                    if resultDict['event']["event_type"] == "USER_UPDATE":
+                        self.channel = resultDict['event']['streamer']['username']
+                        if self.channel not in self.cmdPhraseUsers:
+                            self.cmdPhraseUsers.append(self.channel)
 
                 if "reward" in eventKeys:
                     self.rewardTitle = resultDict["event"]["reward"]["title"]
@@ -203,11 +210,11 @@ class mainChat:
                         pass
 
                 if "donations" in eventKeys:
-                    self.bitsAmount = round(resultDict["event"]["donations"][0]["amount"])
-                    user = resultDict["event"]["sender"]["displayname"]
-                    message = resultDict["event"]["message"]
-                    print("(" + misc.formatTime() + ")>> [EVENT] " + user + " cheered %s bits with the message %s" % (self.bitsAmount, message))
-
+                    if resultDict["event"]["donations"]:
+                        self.bitsAmount = round(resultDict["event"]["donations"][0]["amount"])
+                        user = resultDict["event"]["sender"]["displayname"]
+                        message = resultDict["event"]["message"]
+                        print("(" + misc.formatTime() + ")>> [EVENT] " + user + " cheered %s bits with the message %s" % (self.bitsAmount, message))
 
 
                 if "message" in eventKeys:  # Got chat message, display it then process commands
@@ -225,7 +232,7 @@ class mainChat:
 
 
                             if settings["COMMAND PHRASE"]:  # Process anticommands
-                                if user.lower() in [settings["BOT NAME"].lower(), settings["ALT BOT NAME"].lower()]:
+                                if user.lower() in self.cmdPhraseUsers:
                                     if commandPhrase.trimSetting() in message.lower():
                                         extractedCmd = commandPhrase.extractCmd(message)
                                         cmdarguments = (extractedCmd.replace(extractedCmd.split(" ")[0], '')).strip()
