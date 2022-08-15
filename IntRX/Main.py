@@ -170,7 +170,7 @@ class mainChat:
             prefix = settings["PREFIX"]
             result = chatConnection.ws.recv()
             resultDict = json.loads(result)
-            print(resultDict)
+            #print(resultDict)
             if debugMode:
                 print(resultDict)
             if "event" in resultDict.keys() and not chatConnection.active:
@@ -299,13 +299,13 @@ def refresh():
             cacheActiveGame = cmd.activeGame
             if settings['ANNOUNCE GAME']:
                 chatConnection.sendToChat("The streamer is now playing " + cmd.activeGame + " and you can interact with it!")
-            cmd.currentCommands = importInteraction(cmd.activeGame)
+            cmd.loadedGameCommands = importInteraction(cmd.activeGame)
 
         elif not cmd.activeGame:  # If no game is loaded
-            cmd.currentCommands = []
+            cmd.loadedGameCommands = []
 
         elif cmd.activeGame and (len(cmd.loadedGameCommands) == 0):  # If the game is tabbed back in, but not a new game (don't announce it)
-            cmd.currentCommands = importInteraction(cmd.activeGame)
+            cmd.loadedGameCommands = importInteraction(cmd.activeGame)
 
 
 def tick():
