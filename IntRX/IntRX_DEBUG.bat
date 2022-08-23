@@ -1,2 +1,2 @@
-py -3.7 Main.py
+py -3.7 Main.py --d
 pause
