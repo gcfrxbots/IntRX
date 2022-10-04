@@ -3,7 +3,7 @@ import argparse
 import time
 import shutil
 import json
-from websocket import create_connection
+from websocket import create_connection, WebSocketConnectionClosedException
 import subprocess
 import datetime
 from distutils.dir_util import copy_tree
@@ -38,17 +38,20 @@ defaultSettings = [
     ("CD BETWEEN CMDS", 15, "The cooldown, in seconds, between two consecutive commands."),
     ("DEFAULT ARG", "No", "Set to No to require an argument for any commands with %ARGS%. Set to anything else to use that value if the user doesn't provide an argument. "),
     ("MAX ARG", 25, "The highest integer that a user can provide for %ARGS%. Used to prevent things like $SPAM from being run 99999 times."),
-    ("", "", ""),
+    ("", "", ">>>COMMAND PHRASES BELOW - Do not touch these settings unless you want IntRX to be triggered by a different bot."),
     ("ALT BOT NAMES", "", "If you use another bot which uses its own account, such as NightBot or StreamElements, type their names here. Separate by a comma."),
-    ("COMMAND PHRASE", "", "If this isn't empty, commands will only be accepted from your bot(s), and must be executed via this phrase. Use %CMD% to mark where the command goes. Check the site for more info."),
+    ("COMMAND PHRASE 1", "", "If this isn't empty, commands will only be accepted from your bot(s), and must be executed via this phrase. Write any phrase that includes %CMD%, which marks where the bot will look for a command. Ex: 'just executed the %CMD% command'. Check the documentation for more info."),
+    ("COMMAND PHRASE 2", "", "Second command phrase the bot will search for."),
+    ("COMMAND PHRASE 3", "", "Third command phrase the bot will search for."),
 ]
 '''----------------------END SETTINGS----------------------'''
 
-# TODO - Make CHAT AS RXBOTS work - See message from END3R
+# TODO - Make CHAT AS RXBOTS work - See message from END3R - Done?
 # TODO - NEW COMMAND PHRASES
 # TODO - Rework Command Phrase with better logic
 # TODO - Mouse Movement / Control
-# TODO - Voice Control
+# TODO - Pipeline for compiling
+# TODO - Documentation, ew
 
 
 def stopBot(err):
@@ -285,15 +288,18 @@ def initSetup():
     # Read the settings file
     settings = readSettings()
 
-    if settings["COMMAND PHRASE"]:
-        settingsCmdPhrase = settings["COMMAND PHRASE"].replace("%CMD%", "%cmd%")
-        if not "%cmd%" in settingsCmdPhrase:
-            stopBot("Your COMMAND PHRASE does not have %CMD% in it anywhere.")
-        if len(settingsCmdPhrase.split("%cmd%", 1)[0]) < 3:
-            stopBot("Your setting for COMMAND PHRASE is too short. You need at least 4 characters before %CMD%. ")
+    if settings["COMMAND PHRASE 1"] or settings["COMMAND PHRASE 2"] or settings["COMMAND PHRASE 3"] :
+        settingsCmdPhrases = [settings["COMMAND PHRASE 1"].replace("%CMD%", "%cmd%"), settings["COMMAND PHRASE 2"].replace("%CMD%", "%cmd%"), settings["COMMAND PHRASE 3"].replace("%CMD%", "%cmd%")]
+        for phrase in settingsCmdPhrases:
+            if phrase:
+                if not "%cmd%" in phrase:
+                    stopBot("One of your COMMAND PHRASE settings does not have %CMD% in it anywhere.")
+                if len(phrase.strip()) < 10:
+                    stopBot("One of your COMMAND PHRASE settings is too short, it needs to be at least 10 characters long (including spaces and %CMD%) so the bot can detect the actual phrase.")
+
         print("\n\n IMPORTANT! You have a COMMAND PHRASE set in your Settings. NORMAL COMMANDS WON'T WORK!"
               "\n The bot will ONLY run commands via phrases sent only by the specified bot accounts. "
-              "\n If you don't know what this means, remove your COMMAND PHRASE setting and read the documentation.\n")
+              "\n If you don't know what this means, remove your COMMAND PHRASE settings and read the documentation.\n")
         time.sleep(2)
 
     # Set the normal token
@@ -362,28 +368,37 @@ class chat:
 
     def sendToChat(self, message):
         if message:
-            if not self.puppet:
-                    request = {
-                      "type": "CHAT",
-                      "message": message,
-                      "chatter": "CLIENT"}
-            else:
-                request = {
-                    "type": "CHAT",
-                    "message": message,
-                    "chatter": "PUPPET"}
+            request = {
+                "type": "CHAT",
+                "message": message,
+                "chatter": "CLIENT",
+                "isUserGesture": False,
+                "reply_target": None}
+
+            if self.puppet:
+                request['chatter'] = "PUPPET"
 
             if settings["CHAT AS RXBOTS"]:
-                request["isUserGesture"] = False
+                request["chatter"] = "SYSTEM"
+
+            print(request)
+
             self.sendRequest(request)
 
-    def start(self):
+    def start(self, silent=False):
         if getPlatform() == "caffeine":
             self.ws = create_connection(self.caffeineUrl)
         else:
             self.ws = create_connection(self.url)
         self.login()
-        print(">> Connecting to platform: " + getPlatform().capitalize())
+        if not silent:
+            print(">> Connecting to platform: " + getPlatform().capitalize())
+
+    def reconnect(self):
+        del self.ws
+        time.sleep(0.2)
+        self.ws = None
+        self.start(silent=True)
 
 
 class runMiscControls:

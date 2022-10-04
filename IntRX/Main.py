@@ -3,41 +3,60 @@ from threading import Thread
 from win32gui import GetWindowText, GetForegroundWindow
 
 
-# TODO - REWORK THIS. Split the phrase to a left and right str, check if left is in cmd and right is in cmd, and if so remove both and you're left with the cmd.
-class cmdPhrase:  # Anticommands, my name for grabbing the command from a chat message rather than a command.
+class cmdPhrase:
     def __init__(self):
-        self.fromLeft = 0
-        self.fromRight = 0
-        self.leftStr = ""
-        self.rightStr = ""
+
+        self.phrases = [[], [], []]  # [[leftstr1, rightstr1], [leftstr2, rightstr2], [leftstr3, rightstr3]]
+        self.active = False
+        self.trimSetting()
+
 
     def trimSetting(self):
-        if settings["COMMAND PHRASE"]:
-            phrase = settings["COMMAND PHRASE"].lower()
-            phrase = phrase.replace("%CMD%", "%cmd%")
-            self.fromLeft = 0
-            self.fromRight = 0
-            self.leftStr = phrase.split("%cmd%", 1)[0]
-            self.rightStr = phrase.split("%cmd%", 1)[1]
-            if len(self.leftStr) < 3:
-                stopBot("Your setting for COMMAND PHRASE is too short. You need at least 4 characters before %cmd%. ")
-            self.fromLeft = len(self.leftStr)
-            self.fromRight = len(self.rightStr)
-            return self.leftStr  # Left side of the message includes the
+        for x in range(0, 3):
+            phrase = settings["COMMAND PHRASE %s" % (str(x+1))]
+            if phrase:
+                phrase = phrase.lower()
+                phrase = phrase.replace("%CMD%", "%cmd%")
+                leftStr = phrase.split("%cmd%", 1)[0].strip()
+                rightStr = phrase.split("%cmd%", 1)[1].strip()
+
+                if not leftStr:
+                    leftStr = " "
+                if not rightStr:
+                    rightStr = " "
+
+                self.phrases[x] = [leftStr, rightStr]
+                self.active = True
+
+    def checkMessage(self, message):
+        for phrase in self.phrases:
+            if phrase:
+                leftStr = phrase[0]
+                rightStr = phrase[1]
+
+                if leftStr in message.lower() and rightStr in message.lower():
+                    return True
+
+        return False
 
     def extractCmd(self, cmd):
-        cmd = (cmd.replace("\r", '').strip()).lower()
-        toreturn = ""
-        cmd = (self.leftStr + cmd.split(self.leftStr, 1)[1])
+        for phrase in self.phrases:
+            if phrase:
+                leftStr = phrase[0]
+                rightStr = phrase[1]
+                cmd = (cmd.replace("\r", '').strip()).lower()
+                toReturn = ""
+                if leftStr in cmd and rightStr in cmd:  # Command phrase checks out
+                    if leftStr.strip() and cmd.split(leftStr)[0]:  # Something came before or after the specified command phrase. Ignore it.
+                        cmd = cmd.split(leftStr)[1]
+                    if rightStr.strip() and cmd.split(rightStr)[1]:
+                        cmd = cmd.split(rightStr)[0]
 
-        if self.fromLeft and self.fromRight:
-            toreturn = cmd[self.fromLeft:-self.fromRight]
-        elif self.fromLeft:
-            toreturn = cmd[self.fromLeft:]
-        elif self.fromRight:
-            toreturn = cmd[:-self.fromRight]
+                    toReturn = cmd.replace(leftStr, "").replace(rightStr, "")
 
-        return toreturn.replace(settings["PREFIX"], '')
+                    return toReturn.replace(settings["PREFIX"], '')
+
+        return False
 
 
 def formatted_time():
@@ -167,12 +186,22 @@ class mainChat:
     def main(self):
         chatConnection.start()
         while True:
-            prefix = settings["PREFIX"]
-            result = chatConnection.ws.recv()
-            resultDict = json.loads(result)
+            try:
+                if not chatConnection.ws:  # Raise the exception to restart before getting an attritubuteerror below
+                    raise WebSocketConnectionClosedException
+                prefix = settings["PREFIX"]
+                result = chatConnection.ws.recv()
+                resultDict = json.loads(result)
+            except WebSocketConnectionClosedException:  # Reconnect silently if casterlabs dies
+                chatConnection.reconnect()
+                prefix = settings["PREFIX"]
+                result = chatConnection.ws.recv()
+                resultDict = json.loads(result)
+
             #print(resultDict)
             if debugMode:
                 print(resultDict)
+
             if "event" in resultDict.keys() and not chatConnection.active:
                 if "is_live" in resultDict["event"]:
                     print(">> Connection to chat successful!")
@@ -182,15 +211,54 @@ class mainChat:
 
             if "event" in resultDict.keys():  # Any actual event is under this
                 eventKeys = resultDict["event"].keys()
+                eventType = resultDict["event"]["event_type"]
 
-                # Update self.channel
-                if "event_type" in eventKeys:
-                    if resultDict['event']["event_type"] == "USER_UPDATE":
-                        self.channel = resultDict['event']['streamer']['username']
-                        if self.channel not in self.cmdPhraseUsers:
-                            self.cmdPhraseUsers.append(self.channel)
+                if eventType == "USER_UPDATE":  # defines User Channel (and adds it to alt bot names)
+                    self.channel = resultDict['event']['streamer']['username']
+                    if self.channel not in self.cmdPhraseUsers:
+                        self.cmdPhraseUsers.append(self.channel)
 
-                if "reward" in eventKeys:
+                elif eventType == "RICH_MESSAGE":  # Includes chat and donations (as they come from chat msgs)
+
+                    if resultDict["event"]["donations"]:  # Check if message included a donation
+                        self.bitsAmount = round(resultDict["event"]["donations"][0]["amount"])
+                        user = resultDict["event"]["sender"]["displayname"]
+                        message = resultDict["event"]["message"]
+                        print("(" + misc.formatTime() + ")>> [EVENT] " + user + " cheered %s bits with the message %s" % (self.bitsAmount, message))
+
+                    try:  # Process incoming messages
+                        message = resultDict["event"]["raw"]
+                        if message:
+                            user = resultDict["event"]["sender"]["displayname"]
+                            command = ((message.split(' ', 1)[0]).lower()).replace("\r", "")
+                            cmdarguments = message.replace(command or "\r" or "\n", "")[1:]
+                            self.isSubscriber = False
+                            if "SUBSCRIBER" in resultDict["event"]["sender"]["roles"]:
+                                self.isSubscriber = True
+
+
+                            # START MESSAGE LOGIC
+                            print("(" + misc.formatTime() + ")>> " + user + ": " + message)
+
+                            if commandPhrase.active:
+                                if user.lower() in self.cmdPhraseUsers:
+                                    if commandPhrase.checkMessage(message):
+                                        extractedCmd = commandPhrase.extractCmd(message)
+                                        if extractedCmd:
+                                            cmdarguments = (extractedCmd.replace(extractedCmd.split(" ")[0], '')).strip()
+                                            toRun = extractedCmd.split(" ")[0]
+                                            print("Running command from another bot: " + toRun)
+                                            cmd.runcommand(prefix + toRun, cmdarguments, user)
+
+                            elif command[0] == prefix:  # Only run normal commands if COMMAND PHRASE is blank
+                                cmd.runcommand(command, cmdarguments, user)
+
+                            self.bitsAmount = 0
+
+                    except PermissionError:  # Catches permissionerrors when trying to open any files like settings/interactconfig
+                        pass
+
+                if eventType == "CHANNEL_POINTS":
                     self.rewardTitle = resultDict["event"]["reward"]["title"]
                     rewardPrompt = resultDict["event"]["reward"]["prompt"]
                     self.rewardCost = resultDict["event"]["reward"]["cost"]
@@ -198,7 +266,7 @@ class mainChat:
                     print(
                         "(" + misc.formatTime() + ")>> [EVENT] " + user + " redeemed reward title %s, prompt %s, for %s points." % (self.rewardTitle, rewardPrompt, self.rewardCost))
 
-                if "subscriber" in eventKeys:
+                if eventType == "SUBSCRIPTION":
                     try:
                         subUsername = resultDict["event"]["subscriber"]["username"]
                         subMonths = resultDict["event"]["months"]
@@ -209,44 +277,6 @@ class mainChat:
                     except:
                         pass
 
-                if "donations" in eventKeys:
-                    if resultDict["event"]["donations"]:
-                        self.bitsAmount = round(resultDict["event"]["donations"][0]["amount"])
-                        user = resultDict["event"]["sender"]["displayname"]
-                        message = resultDict["event"]["message"]
-                        print("(" + misc.formatTime() + ")>> [EVENT] " + user + " cheered %s bits with the message %s" % (self.bitsAmount, message))
-
-
-                if "message" in eventKeys:  # Got chat message, display it then process commands
-                    try:
-                        message = resultDict["event"]["message"]
-                        if message:
-                            user = resultDict["event"]["sender"]["displayname"]
-                            command = ((message.split(' ', 1)[0]).lower()).replace("\r", "")
-                            cmdarguments = message.replace(command or "\r" or "\n", "")[1:]
-                            if "SUBSCRIBER" in resultDict["event"]["sender"]["roles"]:
-                                self.isSubscriber = True
-                            else:
-                                self.isSubscriber = False
-                            print("(" + misc.formatTime() + ")>> " + user + ": " + message)
-
-
-                            if settings["COMMAND PHRASE"]:  # Process anticommands
-                                if user.lower() in self.cmdPhraseUsers:
-                                    if commandPhrase.trimSetting() in message.lower():
-                                        extractedCmd = commandPhrase.extractCmd(message)
-                                        cmdarguments = (extractedCmd.replace(extractedCmd.split(" ")[0], '')).strip()
-                                        toRun = extractedCmd.split(" ")[0]
-                                        print("Running command from another bot: " + toRun)
-                                        cmd.runcommand(prefix + toRun, cmdarguments, user)
-
-                            elif command[0] == prefix:  # Only run normal commands if COMMAND PHRASE is blank
-                                cmd.runcommand(command, cmdarguments, user)
-
-                            self.bitsAmount = 0
-
-                    except PermissionError:
-                        pass
 
             if "disclaimer" in resultDict.keys():  # Should just be keepalives?
                 if resultDict["type"] == "KEEP_ALIVE":

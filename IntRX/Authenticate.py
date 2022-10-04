@@ -122,7 +122,7 @@ class chatAuth:
                 with open("../Config/tokens/puppet_{platform}.txt".format(platform=getPlatform()), "w") as file:
                     file.write(token)
                     file.close()
-                    print("Login to your bot's account successful! All set, you can close this now.")
+                    print("Login to your bot's account successful! All set, you can close this now (or restart your bot).")
                     return
 
 
@@ -140,7 +140,8 @@ class CaffeinatedChatAuth:
         print("Please follow these steps to authenticate with Caffeine:")
 
         if account == "main":
-            print('''1. Open Caffeinated (Download from casterlabs.co)
+            print('''
+            1. Open Caffeinated (Download from casterlabs.co)
             2. Select Settings from the menu on the left sidebar
             3. Select "Streaming Services" under Accounts on the left sidebar
             4. Select Caffeine and sign into your Caffeine account.
