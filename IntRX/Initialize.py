@@ -3,7 +3,8 @@ import argparse
 import time
 import shutil
 import json
-from websocket import create_connection, WebSocketConnectionClosedException
+from json import JSONDecodeError
+from websocket import create_connection, WebSocketConnectionClosedException, WebSocketBadStatusException
 import subprocess
 import datetime
 from distutils.dir_util import copy_tree
@@ -30,7 +31,7 @@ debugMode = (vars(parser.parse_args())["debugMode"])
 
 '''FORMAT ---->   ("Option", "Default", "This is a description"), '''
 defaultSettings = [
-    ("PLATFORM", "Twitch", "Choose your streaming platform: Twitch, Youtube, Caffeine, Brime, Trovo, Glimesh."),
+    ("PLATFORM", "Twitch", "Choose your streaming platform: Twitch, Youtube, Caffeine, Brime, Trovo, Glimesh, Dlive."),
     ("CHAT AS RXBOTS", "No", "Set to Yes for all bot messages in your chat to be sent from the user rxbots, or No if you want the messages to be from your own account or your own bot account. (Yes/No)"),
     ("", "", ""),
     ("PREFIX", "!", "The symbol or prefix to tell the bot that a message is a command intended for it. Set to No for no prefix at all (For twitch plays or similar). Recommend ! ? $ or #."),
@@ -46,9 +47,8 @@ defaultSettings = [
 ]
 '''----------------------END SETTINGS----------------------'''
 
+# TODO - Fix non-global sub/dono and all rewards for cmds - Done?
 # TODO - Make CHAT AS RXBOTS work - See message from END3R - Done?
-# TODO - NEW COMMAND PHRASES
-# TODO - Rework Command Phrase with better logic
 # TODO - Mouse Movement / Control
 # TODO - Pipeline for compiling
 # TODO - Documentation, ew
@@ -227,7 +227,7 @@ def changeChatSetting(setting):  # An overcomplicated function that exists only 
 
 
 def getPlatform():
-    validPlatforms = ["twitch", "youtube", "trovo", "glimesh", "brime", "caffeine"]
+    validPlatforms = ["twitch", "youtube", "trovo", "glimesh", "brime", "caffeine", "dlive"]
     wb = xlrd.open_workbook('../Config/Settings.xlsx')
     sheet = wb.sheet_by_name("Settings")
     for item in range(sheet.nrows):
@@ -381,24 +381,33 @@ class chat:
             if settings["CHAT AS RXBOTS"]:
                 request["chatter"] = "SYSTEM"
 
-            print(request)
-
             self.sendRequest(request)
 
-    def start(self, silent=False):
-        if getPlatform() == "caffeine":
-            self.ws = create_connection(self.caffeineUrl)
-        else:
-            self.ws = create_connection(self.url)
-        self.login()
-        if not silent:
-            print(">> Connecting to platform: " + getPlatform().capitalize())
+    def start(self, silent=False, reconnect=False):
+        try:
+            if getPlatform() == "caffeine":
+                self.ws = create_connection(self.caffeineUrl)
+            else:
+                self.ws = create_connection(self.url)
+            self.login()
+            if not silent:
+                print(">> Connecting to platform: " + getPlatform().capitalize())
+        except (WebSocketConnectionClosedException, WebSocketBadStatusException):
+            if not reconnect:  # Only tries to reconnect if its not already being called from reconnect to prevent loops
+                time.sleep(5)
+                self.reconnect()
+            pass
+
 
     def reconnect(self):
-        del self.ws
-        time.sleep(0.2)
-        self.ws = None
-        self.start(silent=True)
+        for x in range(10):
+            try:
+                self.ws = None
+                self.start(silent=True, reconnect=True)
+                return
+            except:
+                time.sleep(5)
+        raise ConnectionError("Unable to connect to Koi after multiple reconnect attempts. Please wait a few minutes then restart the bot.")
 
 
 class runMiscControls:

@@ -56,7 +56,7 @@ class cmdPhrase:
 
                     return toReturn.replace(settings["PREFIX"], '')
 
-        return False
+        return None
 
 
 def formatted_time():
@@ -100,6 +100,22 @@ class commands:
                 if command.lower() == item[0].lower():  # Command detected, pass this to the InteractGame class.
                     cmdToRun = item[2]
                     cooldown = item[1]
+
+                    subOnly = item[3]
+                    donoReq = item[4]
+                    reward = item[5]
+
+                    # RUN PRE-COMMAND CHECKS to make sure the user can actually run it
+                    if subOnly:
+                        if not mainChatConnection.isSubscriber:
+                            chatConnection.sendToChat("This command can only be run by subscribers.")
+                            return
+
+                    if donoReq:
+                        if not mainChatConnection.bitsAmount > donoReq:
+                            chatConnection.sendToChat(
+                                "This command can only be run with a donation of at least " + str(donoReq))
+                            return
                     if "%ARGS" in cmdToRun and not cmdArguments:
                         chatConnection.sendToChat("That command requires you to provide an argument to run.")
                         return
@@ -192,7 +208,7 @@ class mainChat:
                 prefix = settings["PREFIX"]
                 result = chatConnection.ws.recv()
                 resultDict = json.loads(result)
-            except WebSocketConnectionClosedException:  # Reconnect silently if casterlabs dies
+            except (WebSocketConnectionClosedException, WebSocketBadStatusException, JSONDecodeError):  # Reconnect silently if casterlabs dies
                 chatConnection.reconnect()
                 prefix = settings["PREFIX"]
                 result = chatConnection.ws.recv()

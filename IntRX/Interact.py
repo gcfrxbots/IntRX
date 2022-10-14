@@ -55,7 +55,7 @@ def importGlobal():
                         if not os.path.exists("../Config/UserScripts/" + whatToRun):
                             print("File %s does not exist, so the command %s was not added." % (whatToRun, chatcmd))
                         else:
-                            globalCommands.append((chatcmd, cooldown, whatToRun, activeWindow))
+                            globalCommands.append((chatcmd, cooldown, whatToRun, activeWindow, subOnly, donoCost, reward))
                 else:  # No cmd specified
                     print("An entry in your InteractConfig Global page doesn't have a Command specified, so it wasn't loaded.")
                     time.sleep(2)
