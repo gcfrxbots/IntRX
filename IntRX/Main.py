@@ -221,7 +221,7 @@ class mainChat:
                 prefix = settings["PREFIX"]
                 result = chatConnection.ws.recv()
                 resultDict = json.loads(result)
-            except (WebSocketConnectionClosedException, WebSocketBadStatusException, JSONDecodeError):  # Reconnect silently if casterlabs dies
+            except (WebSocketConnectionClosedException, WebSocketBadStatusException, JSONDecodeError, ConnectionResetError):  # Reconnect silently if casterlabs dies
                 chatConnection.reconnect()
                 prefix = settings["PREFIX"]
                 result = chatConnection.ws.recv()

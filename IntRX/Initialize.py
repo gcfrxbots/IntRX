@@ -403,10 +403,14 @@ class chat:
         for x in range(10):
             try:
                 self.ws = None
-                self.start(silent=True, reconnect=True)
-                return
+                self.start(self.platform, reconnect=True)
+                time.sleep(1)
+                result = self.ws.recv()
+                resultDict = json.loads(result)
+                return resultDict
             except:
-                time.sleep(5)
+                print("Reconnecting...")
+                time.sleep(7)
         raise ConnectionError("Unable to connect to Koi after multiple reconnect attempts. Please wait a few minutes then restart the bot.")
 
 
