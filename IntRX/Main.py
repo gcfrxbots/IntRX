@@ -45,16 +45,29 @@ class cmdPhrase:
                 leftStr = phrase[0]
                 rightStr = phrase[1]
                 cmd = (cmd.replace("\r", '').strip()).lower()
-                toReturn = ""
+                print(cmd)
+                toReturn = cmd
                 if leftStr in cmd and rightStr in cmd:  # Command phrase checks out
+
                     if leftStr.strip() and cmd.split(leftStr)[0]:  # Something came before or after the specified command phrase. Ignore it.
                         cmd = cmd.split(leftStr)[1]
+
                     if rightStr.strip() and cmd.split(rightStr)[1]:
                         cmd = cmd.split(rightStr)[0]
 
-                    toReturn = cmd.replace(leftStr, "").replace(rightStr, "")
+                    if leftStr.strip():
+                        toReturn = toReturn.replace(leftStr, "")
 
-                    return toReturn.replace(settings["PREFIX"], '')
+                    if rightStr.strip():
+                        toReturn = toReturn.replace(rightStr, "")
+
+                    toReturn = toReturn.strip()
+                    if toReturn[0] == settings["PREFIX"]:
+                        toReturn = toReturn[1:]
+
+                    print(toReturn)
+
+                    return toReturn
 
         return None
 
@@ -293,8 +306,7 @@ class mainChat:
                     except:
                         pass
 
-
-            if "disclaimer" in resultDict.keys():  # Should just be keepalives?
+            if "type" in resultDict.keys():
                 if resultDict["type"] == "KEEP_ALIVE":
                     response = {"type": "KEEP_ALIVE"}
                     chatConnection.sendRequest(response)
